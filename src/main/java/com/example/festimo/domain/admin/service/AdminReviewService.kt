@@ -1,15 +1,15 @@
 package com.example.festimo.domain.admin.service
 
-import com.example.festimo.domain.admin.mapper.AdminReviewMapper
-import com.example.festimo.domain.review.domain.Review
-import com.example.festimo.domain.review.dto.ReviewResponseDTO
-import com.example.festimo.domain.review.repository.ReviewRepository
-import com.example.festimo.exception.CustomException
-import com.example.festimo.exception.ErrorCode
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+
+import com.example.festimo.domain.admin.mapper.AdminReviewMapper
+import com.example.festimo.domain.review.dto.ReviewResponseDTO
+import com.example.festimo.domain.review.repository.ReviewRepository
+import com.example.festimo.exception.CustomException
+import com.example.festimo.exception.ErrorCode
 
 @Service
 class AdminReviewService(private val reviewRepository: ReviewRepository) {
@@ -27,7 +27,7 @@ class AdminReviewService(private val reviewRepository: ReviewRepository) {
         if (reviewPage.isEmpty) {
             throw CustomException(ErrorCode.REVIEW_NOT_FOUND)
         }
-        return reviewPage.map { review: Review? -> AdminReviewMapper.INSTANCE.toResponseDTO(review) }
+        return reviewPage.map { review -> AdminReviewMapper.INSTANCE.toResponseDTO(review) }
     }
 
     /**

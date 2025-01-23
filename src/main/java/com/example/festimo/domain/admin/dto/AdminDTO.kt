@@ -1,22 +1,14 @@
-package com.example.festimo.domain.admin.dto;
+package com.example.festimo.domain.admin.dto
 
-import java.time.LocalDateTime;
+import java.time.LocalDateTime
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-@AllArgsConstructor
-@Getter
-@Setter
-public class AdminDTO {
-    private Long userId;
-    private String userName;
-    private String nickname;
-    private String email;
-    private String role; // ADMIN, USER
-    private LocalDateTime createdDate;
-    private String gender; // F,M
-    private Float ratingAvg;
-
-}
+data class AdminDTO(
+    var userId: Long = 0,
+    var userName: String = "",
+    var nickname: String = "",
+    var email: String = "",
+    var role: String = "",
+    var createdDate: LocalDateTime = LocalDateTime.now(),
+    var gender: String = "",
+    var ratingAvg: Float = 0f
+)

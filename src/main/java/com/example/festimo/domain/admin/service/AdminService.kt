@@ -1,5 +1,11 @@
 package com.example.festimo.domain.admin.service
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
 import com.example.festimo.domain.admin.dto.AdminDTO
 import com.example.festimo.domain.admin.dto.AdminUpdateUserDTO
 import com.example.festimo.domain.admin.mapper.AdminMapper
@@ -7,12 +13,6 @@ import com.example.festimo.domain.user.domain.User
 import com.example.festimo.domain.user.repository.UserRepository
 import com.example.festimo.exception.CustomException
 import com.example.festimo.exception.ErrorCode
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
-import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
-
 
 @Service
 class AdminService(private val userRepository: UserRepository) {
@@ -27,7 +27,7 @@ class AdminService(private val userRepository: UserRepository) {
     fun getAllUsers(page: Int, size: Int): Page<AdminDTO> {
         val pageable: Pageable = PageRequest.of(page, size)
         return userRepository.findAll(pageable)
-            .map { user: User? -> AdminMapper.INSTANCE.toDto(user) }
+            .map { user: User -> AdminMapper.INSTANCE.toDto(user) }
     }
 
     /**
@@ -39,7 +39,7 @@ class AdminService(private val userRepository: UserRepository) {
      * @throws CustomException 회원이 존재하지 않을 경우 USER_NOT_FOUND 예외 발생
      */
     @Transactional
-    fun updateUser(userId: Long, dto: AdminUpdateUserDTO?): AdminDTO {
+    fun updateUser(userId: Long, dto: AdminUpdateUserDTO): AdminDTO {
         val user = getUserById(userId)
         AdminMapper.INSTANCE.updateFromDto(dto, user)
         val updatedUser = userRepository.save(user)
