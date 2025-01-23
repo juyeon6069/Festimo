@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile - Festimo</title>
+  <link rel="stylesheet" type="text/css" href="../css/edit-profile.css">
+  <script defer type="text/javascript" src="../js/header.js"></script>
+  <script type="module" src="../js/edit-profile.js"></script>
+</head>
+<body>
+<div id="header-container"></div>
+<main class="edit-profile-container">
+  <h2>회원정보 수정</h2>
+  <form id="edit-profile-form" class="edit-profile-form">
+    <label for="username">사용자 이름</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="nickname">닉네임</label>
+    <input type="text" id="nickname" name="nickname" required>
+
+    <label for="gender">성별</label>
+    <select id="gender" name="gender" required>
+      <option value="">선택</option>
+      <option value="M">남성</option>
+      <option value="F">여성</option>
+    </select>
+
+    <button type="submit">수정 완료</button>
+  </form>
+  <button id="password-change-btn" class="password-change-btn">비밀번호 변경하기</button>
+  <button id="delete-account-btn" class="delete-account-btn">회원 탈퇴</button>
+</main>
+</body>
+</html>

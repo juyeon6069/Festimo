@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Festimo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../css/festival.css">
+    <script defer type="text/javascript" src="../js/festival.js"></script>
+    <script defer type="text/javascript" src="../js/header.js"></script>
+</head>
+<body>
+    <div id="header-container"></div>
+
+    <div class="search-container">
+        <div class="search-bar-wrapper">
+            <input type="text" id="searchBar" class="search-bar" placeholder="검색어를 입력하세요">
+            <i class="fas fa-search search-icon" onclick="searchFestivals()"></i>
+        </div>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="showDateFilter()">날짜별</button>
+            <button class="filter-btn" onclick="showRegions()">지역별</button>
+        </div>
+
+        <div class="navigation-options" id="yearOptions">
+            <span>2023</span>
+            <span>2024</span>
+            <span>2025</span>
+        </div>
+
+        <div class="navigation-options" id="monthOptions">
+            <span>1월</span>
+            <span>2월</span>
+            <span>3월</span>
+            <span>4월</span>
+            <span>5월</span>
+            <span>6월</span>
+            <span>7월</span>
+            <span>8월</span>
+            <span>9월</span>
+            <span>10월</span>
+            <span>11월</span>
+            <span>12월</span>
+        </div>
+
+        <div class="region-options" id="regionOptions">
+            <span>서울</span>
+            <span>경기</span>
+            <span>인천</span>
+            <span>강원</span>
+            <span>대전</span>
+            <span>충북</span>
+            <span>충남</span>
+            <span>세종</span>
+            <span>부산</span>
+            <span>울산</span>
+            <span>대구</span>
+            <span>경북</span>
+            <span>경남</span>
+            <span>전북</span>
+            <span>전남</span>
+            <span>광주</span>
+            <span>제주</span>
+        </div>
+    </div>
+
+    <div id="eventgrid">
+    </div>
+    <form method="GET" action="/html/festival_detail.html" id="efrm">
+        <input type="hidden" name="festival_id" id="hiddenFestivalId">
+    </form>
+
+    <div class="pagination">
+    </div>
+
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        function showDateFilter() {
+            // 연도와 월을 표시
+            document.getElementById('yearOptions').style.display = 'flex';
+            document.getElementById('monthOptions').style.display = 'flex';
+            document.getElementById('regionOptions').style.display = 'none';
+
+            // 버튼 활성화 상태 조정
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // 연도 클릭 이벤트 처리
+        document.getElementById('yearOptions').onclick = function (event) {
+            const target = event.target;
+            if (target.tagName === 'SPAN') {
+                const selectedYear = target.textContent.trim();
+                console.log(`Selected Year: ${selectedYear}`);
+                // 클릭된 연도에 활성화 클래스 추가
+                document.querySelectorAll('#yearOptions span').forEach(span => span.classList.remove('active'));
+                target.classList.add('active');
+            }
+        };
+
+        // 월 클릭 이벤트 처리
+        document.getElementById('monthOptions').onclick = function (event) {
+            const target = event.target;
+            if (target.tagName === 'SPAN') {
+                const selectedMonth = target.textContent.trim().replace('월', '');
+                console.log(`Selected Month: ${selectedMonth}`);
+                const selectedYear = document.querySelector('#yearOptions .active')?.textContent || '2023'; // 선택된 연도
+                filterEventsByDate(selectedYear, selectedMonth); // 연도와 월 필터링
+                document.querySelectorAll('#monthOptions span').forEach(span => span.classList.remove('active'));
+                target.classList.add('active');
+            }
+        };
+
+        function showRegions() {
+            document.getElementById('yearOptions').style.display = 'none';
+            document.getElementById('monthOptions').style.display = 'none';
+            document.getElementById('regionOptions').style.display = 'flex';
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // 지역 클릭 이벤트 처리
+        document.getElementById('regionOptions').onclick = function (event) {
+            const target = event.target;
+            if (target.tagName === 'SPAN') {
+                const selectedRegion = target.textContent.trim();
+                console.log(`Selected Region: ${selectedRegion}`);
+                document.querySelectorAll('#regionOptions span').forEach(span => span.classList.remove('active'));
+                target.classList.add('active');
+                filterEventsByRegion(selectedRegion); // 지역별 필터링
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('yearOptions').style.display = 'flex';
+            document.getElementById('monthOptions').style.display = 'flex';
+            document.getElementById('regionOptions').style.display = 'none';
+        });
+
+        document.getElementById('searchBar').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                searchFestivals();  // 엔터를 눌렀을 때 검색 실행
+            }
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log in....</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/login.css">
+  <script defer type="text/javascript" src="../js/header.js"></script>
+</head>
+<body>
+<h1 class="login-title">Loading....</h1>
+<script>
+  (async function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const email = urlParams.get('email');
+      const password = '';
+
+      try {
+          // API 요청 보내기
+          const response = await fetch('http://localhost:8080/api/login', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email, password }),
+          });
+
+          if (response.ok) {
+              const data = await response.json();
+              const accessToken = data.accessToken;
+
+              // 1. JavaScript 메모리에 access token 저장 (localStorage 또는 sessionStorage 사용)
+              localStorage.setItem('accessToken', accessToken);
+
+              // userInfo 저장
+              localStorage.setItem('userInfo', JSON.stringify({
+                  nickname: data.nickname,
+                  mail: data.email,
+              }));
+
+              window.location.href = '/';
+          } else {
+              // 실패 처리
+              const errorMessage = await response.text();
+              document.getElementById('status').innerText = "Login failed: " + errorMessage;
+              alert(errorMessage);
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          document.getElementById('status').innerText = "An error occurred.";
+          alert('서버와 통신 중 문제가 발생했습니다.');
+      }
+  })();
+
+</script>
+</body>
+</html>

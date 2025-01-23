@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eventory - Registration</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/regitstration_form.css">
+  <script defer type="text/javascript" src="../js/header.js"></script>
+</head>
+<body>
+<div id="header-container"></div>
+
+<main>
+  <div class="register-container">
+    <h1 class="register-title">회원가입</h1>
+    <form id="registration-form">
+      <input id="userId" type="text" class="input-field" placeholder="이름" required>
+      <input id="email" type="email" class="input-field" placeholder="이메일(ID)" required>
+      <input id="nickname" type="text" class="input-field" placeholder="닉네임" required>
+      <input id="password" type="password" class="input-field" placeholder="비밀번호" required>
+      <input id="confirmPassword" type="password" class="input-field" placeholder="비밀번호 확인" required>
+
+      <div class="gender-field">
+        <label>
+          <input type="radio" name="gender" value="M" required>
+          <span>남성</span>
+        </label>
+        <label>
+          <input type="radio" name="gender" value="F" required>
+          <span>여성</span>
+        </label>
+      </div>
+
+      <button type="submit" class="register-button">가입하기</button>
+    </form>
+
+    <p class="login-text">
+      이미 계정이 있으신가요?<a href="/html/login.html" class="login-link">로그인</a>
+    </p>
+  </div>
+</main>
+
+<script>
+  document.getElementById('registration-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    if (document.getElementById('password').value !== document.getElementById('confirmPassword').value) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    const formData = {
+      userName: document.getElementById('userId').value,
+      email: document.getElementById('email').value,
+      nickname: document.getElementById('nickname').value,
+      password: document.getElementById('password').value,
+      gender: document.querySelector('input[name="gender"]:checked').value
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        alert('회원가입이 완료되었습니다.');
+        window.location.href = '/html/login.html';
+      } else {
+        const errorData = await response.text();
+        alert(errorData);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('서버와 통신 중 문제가 발생했습니다.');
+    }
+  });
+</script>
+</body>
+</html>

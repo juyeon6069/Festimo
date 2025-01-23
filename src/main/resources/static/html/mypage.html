@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Page - Festimo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../css/mypage.css">
+    <script defer type="text/javascript" src="../js/header.js"></script>
+    <script type="module" src="../js/mypage.js"></script>
+</head>
+<body>
+<div id="header-container"></div>
+
+<main class="mypage-container">
+    <section class="profile-section">
+        <h2 id="welcome-message">[사용자 이름]님</h2>
+        <div class="profile-info">
+            <img src="../imgs/default-avatar.png" alt="Profile Picture" class="profile-picture">
+            <div class="profile-details">
+                <p><strong>Nickname:</strong> <span id="nickname">[사용자 닉네임]</span></p>
+                <p><strong>E-mail:</strong> <span id="email">[사용자 이메일]</span></p>
+            </div>
+        </div>
+
+        <button class="edit-profile-btn" id="edit-profile-btn">프로필 수정</button>
+    </section>
+
+    <section class="activity-section">
+        <h2>내 활동</h2>
+        <div class="activity-tabs">
+            <button class="tab-btn active" data-tab="written-reviews">내가 쓴 리뷰</button>
+            <button class="tab-btn" data-tab="received-reviews">내가 받은 리뷰</button>
+        </div>
+        <div id="written-reviews" class="tab-content active">
+            <!-- "내가 쓴 리뷰" 동적 콘텐츠 -->
+            <div id="written-reviews-container">
+                <p>내가 쓴 리뷰가 없습니다.</p>
+            </div>
+            <div id="written-pagination-container" class="pagination"></div> <!-- ✅ 페이지네이션 컨테이너 -->
+        </div>
+        <div id="received-reviews" class="tab-content">
+            <!-- "내가 받은 리뷰" 동적 콘텐츠 -->
+            <div id="received-reviews-container">
+                <p>내가 받은 리뷰가 없습니다.</p>
+            </div>
+            <div id="received-pagination-container" class="pagination"></div> <!-- ✅ 페이지네이션 컨테이너 -->
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2025 Festimo. All rights reserved.</p>
+</footer>
+</body>
+</html>

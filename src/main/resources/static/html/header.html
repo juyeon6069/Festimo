@@ -1,0 +1,63 @@
+<!-- header.html -->
+
+<head>
+    <style>
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: white;
+            font-size: 14.5px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            color: #4a4a4a;
+            text-decoration: none;
+        }
+        .logo img {
+            width: 23.5%;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #4a4a4a;
+        }
+
+        .nav-links .get-started {
+            color: white;
+            background-color: #5c5d8d;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        .nav-links .get-started:hover {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<header class="header">
+    <a href="/" class="logo">
+        <img src="../imgs/festimoLogo.svg" alt="Festimo Logo">
+    </a>
+    <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/html/mypage.html">Mypage</a>
+        <a href="/html/festival.html">Festival</a>
+        <a href="/community">Community</a>
+        <a href="/html/companion.html">Companion</a>
+        <a href="/html/login.html" id="login-logout-link">Login</a>
+        <a href="/html/registration_form.html" class="get-started" id="getStarted-link">Get started</a>
+    </nav>
+</header>

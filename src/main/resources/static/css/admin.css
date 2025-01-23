@@ -1,0 +1,203 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+}
+
+/* 헤더 스타일 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: white;
+    font-size: 14.5px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    color: #4a4a4a;
+    text-decoration: none;
+}
+
+.logo img {
+    width: 23.5%;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #4a4a4a;
+}
+
+.nav-links .get-started {
+    color: white;
+    background-color: #5c5d8d;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.nav-links .get-started:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* 메인 컨테이너 스타일 */
+.admin-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 관리자 탭 스타일 */
+.admin-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.admin-tabs .tab {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 14px;
+    border: none;
+    background: none;
+    color: #4a4a4a;
+}
+
+.admin-tabs .tab.active {
+    border-bottom: 2px solid #6b46c1;
+    font-weight: bold;
+    color: #6b46c1;
+}
+
+/* 탭 컨텐츠 스타일 */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 테이블 스타일 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background-color: white;
+}
+
+table th, table td {
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+table th {
+    background-color: #f1f1f1;
+    font-weight: bold;
+}
+
+/* 버튼 스타일 */
+button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    background: #718096;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* 수정 폼 스타일 */
+#edit-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#edit-form {
+    display: grid;
+    gap: 1rem;
+}
+
+#edit-form div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#edit-form label {
+    font-weight: bold;
+}
+
+#edit-form input,
+#edit-form select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* 페이지네이션 스타일 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1.5rem;
+    gap: 1rem;
+}
+
+.pagination button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #6b46c1;
+    color: white;
+}
+
+.pagination button:disabled {
+    background-color: #d3d3d3;
+    cursor: not-allowed;
+}
+
+/* 로딩 및 에러 스타일 */
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 16px;
+    color: #666;
+}
+
+.error {
+    color: #e53e3e;
+    text-align: center;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
