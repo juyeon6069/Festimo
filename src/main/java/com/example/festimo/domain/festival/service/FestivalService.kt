@@ -1,331 +1,353 @@
-package com.example.festimo.domain.festival.service;
+package com.example.festimo.domain.festival.service
 
-import com.example.festimo.domain.festival.domain.Festival;
-import com.example.festimo.domain.festival.dto.FestivalDetailsTO;
-import com.example.festimo.domain.festival.dto.FestivalTO;
-import com.example.festimo.domain.festival.repository.FestivalRepository;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PersistenceContext;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-
-import java.net.URI;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.example.festimo.domain.festival.domain.Festival
+import com.example.festimo.domain.festival.dto.FestivalDetailsTO
+import com.example.festimo.domain.festival.dto.FestivalTO
+import com.example.festimo.domain.festival.repository.FestivalRepository
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import org.modelmapper.ModelMapper
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
+import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.client.RestTemplate
+import org.springframework.web.util.DefaultUriBuilderFactory
+import java.net.URI
+import java.time.Duration
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import kotlin.math.ceil
 
 @Service
-public class FestivalService {
+open class FestivalService {
+    @Value("\${SEARCH_FESTIVAL_API_KEY}")
+    private val SEARCH_FESTIVAL_API_KEY: String? = null
 
-    @Value("${SEARCH_FESTIVAL_API_KEY}")
-    private String SEARCH_FESTIVAL_API_KEY;
-    @Value("${INFO_FESTIVAL_API_KEY}")
-    private String INFO_FESTIVAL_API_KEY;
+    @Value("\${INFO_FESTIVAL_API_KEY}")
+    private val INFO_FESTIVAL_API_KEY: String? = null
 
     @Autowired
-    private FestivalRepository festivalRepository;
+    private val festivalRepository: FestivalRepository? = null
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private val entityManager: EntityManager? = null
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private val redisTemplate: RedisTemplate<String, Any>? = null
 
     @Scheduled(cron = "0 0 0 * * ?")
-    public void scheduleRefreshEvents() {
-        refreshEvents();
+    fun scheduleRefreshEvents() {
+        refreshEvents()
     }
 
     @Transactional
-    public void refreshEvents() {
+    open fun refreshEvents() {
         try {
             // 기존 데이터를 삭제하여 데이터 갱신
-            festivalRepository.deleteAll();
+            festivalRepository!!.deleteAll()
 
-            resetAutoIncrement();
+            resetAutoIncrement()
 
             // API 호출로 데이터 가져오기
-            List<FestivalTO> events = getAllEvents();
+            val events = getAllEvents()
 
             // 가져온 데이터를 데이터베이스에 저장
-            for (FestivalTO event : events) {
-                insert(event);
+            for (event in events) {
+                insert(event)
             }
-        } catch (Exception e) {
-            System.out.println("refreshEvents 도중 에러 발생: " + e.getMessage());
+        } catch (e: Exception) {
+            println("refreshEvents 도중 에러 발생: " + e.message)
         }
     }
 
-    public List<FestivalTO> getAllEvents(){
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory("https://apis.data.go.kr/B551011/KorService1");
-        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+    fun getAllEvents(): List<FestivalTO> {
+        val factory = DefaultUriBuilderFactory("https://apis.data.go.kr/B551011/KorService1")
+        factory.encodingMode = DefaultUriBuilderFactory.EncodingMode.NONE
 
-        String baseUrl = "https://apis.data.go.kr/B551011/KorService1";
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setUriTemplateHandler(factory);
+        val restTemplate = RestTemplate()
+        restTemplate.uriTemplateHandler = factory
 
-        List<FestivalTO> festivalList = new ArrayList<>();
-        int pageNo = 1;
-        int numOfRows = 100;
+        val festivalList: MutableList<FestivalTO> = mutableListOf()
+        var pageNo = 1
+        val numOfRows = 100
+
         try {
-            while(true) {
-                String url = factory.expand("/searchFestival1?serviceKey={serviceKey}&eventStartDate={eventStartDate}" +
-                                "&pageNo={pageNo}&numOfRows={numOfRows}&MobileApp={MobileApp}" +
-                                "&MobileOS={MobileOS}&listYN={listYN}&arrange={arrange}&_type={_type}",
-                        Map.of(
-                                "serviceKey", SEARCH_FESTIVAL_API_KEY,
-                                "eventStartDate", "20230729",
-                                "pageNo", pageNo,
-                                "numOfRows", numOfRows,
-                                "MobileApp", "AppTest",
-                                "MobileOS", "ETC",
-                                "listYN", "Y",
-                                "arrange", "O",
-                                "_type", "json"
-                        )).toString();
-                URI uri = new URI(url);
-                ResponseEntity<Map> responseEntity = restTemplate.getForEntity(uri, Map.class);
-                Map<String, Object> response = responseEntity.getBody();
+            while (true) {
+                val url = factory.expand(
+                    "/searchFestival1?serviceKey={serviceKey}&eventStartDate={eventStartDate}" +
+                            "&pageNo={pageNo}&numOfRows={numOfRows}&MobileApp={MobileApp}" +
+                            "&MobileOS={MobileOS}&listYN={listYN}&arrange={arrange}&_type={_type}",
+                    mapOf(
+                        "serviceKey" to SEARCH_FESTIVAL_API_KEY,
+                        "eventStartDate" to "20230729",
+                        "pageNo" to pageNo,
+                        "numOfRows" to numOfRows,
+                        "MobileApp" to "AppTest",
+                        "MobileOS" to "ETC",
+                        "listYN" to "Y",
+                        "arrange" to "O",
+                        "_type" to "json"
+                    )
+                ).toString()
 
-                // 결과 확인
-                // JSON 데이터에서 필요한 정보 추출
-                Map<String, Object> body = (Map<String, Object>) ((Map<String, Object>) response.get("response")).get("body");
-                int totalCount = (int) body.get("totalCount");
-                Map<String, Object> items = (Map<String, Object>) body.get("items");
+                val uri = URI(url)
+                val responseEntity: ResponseEntity<Map<*, *>> = restTemplate.getForEntity(uri, Map::class.java)
+                val response = responseEntity.body as Map<String, Any>
 
-                // 데이터가 없으면 반복 종료
-                if (items == null || !items.containsKey("item")) {
-                    break;
-                }
+                val body = (response["response"] as Map<String, Any>)["body"] as Map<String, Any>
+                val totalCount = body["totalCount"] as Int
+                val items = body["items"] as? Map<String, Any>
 
-                List<Map<String, Object>> itemList = (List<Map<String, Object>>) items.get("item");
+                if (items == null || !items.containsKey("item")) break
 
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-                for (Map<String, Object> item : itemList) {
-                    FestivalTO festivalTO = new FestivalTO();
-                    festivalTO.setTitle((String) item.get("title"));
-                    festivalTO.setAddress((String) item.get("addr1") + " " + (String) item.get("addr2"));
+                val itemList = items["item"] as List<Map<String, Any>>
 
-                    String cat2 = (String) item.get("cat2");
-                    String category;
-                    if ("A0207".equals(cat2)) {
-                        category = "축제";
-                    } else if ("A0208".equals(cat2)) {
-                        category = "행사";
-                    } else {
-                        category = "기타";
+                val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+                for (item in itemList) {
+                    val title = item["title"] as? String ?: ""
+                    val address = (item["addr1"] as? String ?: "") + " " + (item["addr2"] as? String ?: "")
+
+                    val category = when (item["cat2"] as? String) {
+                        "A0207" -> "축제"
+                        "A0208" -> "행사"
+                        else -> "기타"
                     }
 
-                    festivalTO.setCategory(category);
-                    festivalTO.setStartDate(LocalDate.parse((CharSequence) item.get("eventstartdate"), formatter));
-                    festivalTO.setEndDate(LocalDate.parse((CharSequence) item.get("eventenddate"), formatter));
-                    festivalTO.setImage((String) item.get("firstimage"));
-                    festivalTO.setXCoordinate(Float.parseFloat((String) item.get("mapx")));
-                    festivalTO.setYCoordinate(Float.parseFloat((String) item.get("mapy")));
-                    festivalTO.setPhone((String) item.get("tel"));
+                    val startDate = item["eventstartdate"]?.let { LocalDate.parse(it as CharSequence, formatter) }
+                    val endDate = item["eventenddate"]?.let { LocalDate.parse(it as CharSequence, formatter) }
+                    val image = item["firstimage"] as? String
+                    val xCoordinate = (item["mapx"] as? String)?.toFloat() ?: 0f
+                    val yCoordinate = (item["mapy"] as? String)?.toFloat() ?: 0f
+                    val phone = item["tel"] as? String
+                    val contentId = (item["contentid"] as? String)?.toInt() ?: 0
 
-                    festivalTO.setContentId(Integer.parseInt((String) item.get("contentid")));
+                    val festivalTO = FestivalTO(
+                        title = title,
+                        category = category,
+                        startDate = startDate,
+                        endDate = endDate,
+                        address = address,
+                        image = image,
+                        xCoordinate = xCoordinate,
+                        yCoordinate = yCoordinate,
+                        phone = phone,
+                        contentId = contentId,
+                        festivalDetails = null
+                    )
 
-                    festivalList.add(festivalTO);
+                    festivalList.add(festivalTO)
                 }
-                int totalPages = (int) Math.ceil((double) totalCount / numOfRows);
-                if(pageNo >= totalPages){
-                    break;
-                }
-                pageNo++;
+
+                val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
+                if (pageNo >= totalPages) break
+                pageNo++
             }
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+        } catch (e: Exception) {
+            System.err.println("Error: ${e.message}")
         }
-        return festivalList;
+
+        return festivalList
     }
 
-    private FestivalDetailsTO getFestivalDescription(int contentId) {
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory("https://apis.data.go.kr/B551011/KorService1");
-        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
 
-        String baseUrl = "https://apis.data.go.kr/B551011/KorService1";
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setUriTemplateHandler(factory);
-
-        FestivalDetailsTO details = new FestivalDetailsTO();
-        try{
-            String url = factory.expand("/detailInfo1?serviceKey={serviceKey}&MobileApp={MobileApp}" +
-                            "&MobileOS={MobileOS}&contentId={contentId}&contentTypeId={contentTypeId}&_type={_type}",
-                    Map.of(
-                            "serviceKey", INFO_FESTIVAL_API_KEY,
-                            "MobileApp", "AppTest",
-                            "MobileOS", "ETC",
-                            "contentId", contentId,
-                            "contentTypeId", "15",
-                            "_type", "json"
-                    )).toString();
-            URI uri = new URI(url);
-            ResponseEntity<Map> responseEntity = restTemplate.getForEntity(uri, Map.class);
-            Map<String, Object> response = responseEntity.getBody();
-
-            // 결과 확인
-            Map<String, Object> body = (Map<String, Object>) ((Map<String, Object>) response.get("response")).get("body");
-            Object items = body.get("items");
-
-            if (items instanceof Map) {
-                List<Map<String, Object>> itemList = (List<Map<String, Object>>) ((Map<String, Object>) items).get("item");
-                if (itemList != null) {
-                    for (Map<String, Object> item : itemList) {
-                        String infoName = (String) item.get("infoname");
-                        String infoText = (String) item.get("infotext");
-                        details.getDetails().add(new FestivalDetailsTO.Detail(infoName, infoText));
-                    }
-                }
-            } else if (items instanceof List) {
-                List<Map<String, Object>> itemList = (List<Map<String, Object>>) items;
-                for (Map<String, Object> item : itemList) {
-                    String infoName = (String) item.get("infoname");
-                    String infoText = (String) item.get("infotext");
-                    details.getDetails().add(new FestivalDetailsTO.Detail(infoName, infoText));
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error fetching description: " + e.getMessage());
+    fun getFestivalDescription(contentId: Int): FestivalDetailsTO {
+        val factory = DefaultUriBuilderFactory("https://apis.data.go.kr/B551011/KorService1").apply {
+            encodingMode = DefaultUriBuilderFactory.EncodingMode.NONE
         }
-        return details;
+
+        val restTemplate = RestTemplate().apply {
+            uriTemplateHandler = factory
+        }
+
+        val details = mutableListOf<FestivalDetailsTO.Detail>()
+        try {
+            val url = factory.expand(
+                "/detailInfo1?serviceKey={serviceKey}&MobileApp={MobileApp}" +
+                        "&MobileOS={MobileOS}&contentId={contentId}&contentTypeId={contentTypeId}&_type={_type}",
+                mapOf(
+                    "serviceKey" to INFO_FESTIVAL_API_KEY,
+                    "MobileApp" to "AppTest",
+                    "MobileOS" to "ETC",
+                    "contentId" to contentId,
+                    "contentTypeId" to "15",
+                    "_type" to "json"
+                )
+            ).toString()
+
+            val uri = URI(url)
+            val responseEntity = restTemplate.getForEntity(uri, Map::class.java)
+            val response = responseEntity.body as Map<*, *>
+
+            val body = (response["response"] as? Map<*, *>)?.get("body") as? Map<*, *>
+            val items = body?.get("items")
+
+            val itemList = when (items) {
+                is Map<*, *> -> items["item"] as? List<Map<String, Any>>
+                is List<*> -> items.filterIsInstance<Map<String, Any>>()
+                else -> null
+            }
+
+            itemList?.forEach { item ->
+                val infoName = item["infoname"] as? String ?: ""
+                val infoText = item["infotext"] as? String ?: ""
+                details.add(FestivalDetailsTO.Detail(infoName, infoText, contentId))
+            }
+        } catch (e: Exception) {
+            println("Error fetching description: ${e.message}")
+        }
+
+        return FestivalDetailsTO(details)
     }
+
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void resetAutoIncrement() {
-        entityManager.createNativeQuery("ALTER TABLE festival AUTO_INCREMENT = 1").executeUpdate();
+    open fun resetAutoIncrement() {
+        entityManager!!.createNativeQuery("ALTER TABLE festival AUTO_INCREMENT = 1").executeUpdate()
     }
 
     @Transactional
-    public void insert(FestivalTO to){
-        ModelMapper modelMapper = new ModelMapper();
-        Festival festival = modelMapper.map(to, Festival.class);
+    open fun insert(to: FestivalTO?) {
+        val modelMapper = ModelMapper()
+        val festival = modelMapper.map(to, Festival::class.java)
 
-        festivalRepository.save(festival);
+        festivalRepository!!.save(festival)
     }
 
 
-    public Page<FestivalTO> findPaginated(Pageable pageable) {
-        Page<Festival> festivals = festivalRepository.findAll(pageable);
-        ModelMapper modelMapper = new ModelMapper();
-        Page<FestivalTO> page = festivals.map(festival -> modelMapper.map(festival, FestivalTO.class));
-        return page;
-    }
-
-public Page<FestivalTO> findPaginatedWithCache(Pageable pageable) {
-    String cacheKey = "festivals:page:" + pageable.getPageNumber() + ":" + pageable.getPageSize();
-    String totalElementsKey = "festivals:totalElements";
-
-    // 1. 캐시된 페이지 데이터 확인
-    Object cachedData = redisTemplate.opsForValue().get(cacheKey);
-    if (cachedData != null) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-            objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-            // List<FestivalTO>로 캐시 된 데이터 Deserialize
-            List<FestivalTO> cachedList = objectMapper.convertValue(cachedData, new TypeReference<List<FestivalTO>>() {});
-
-            // 2. 캐시된 totalElements 확인
-            String totalElementsStr = (String) redisTemplate.opsForValue().get(totalElementsKey);
-            long totalElements;
-            if (totalElementsStr != null) {
-                try {
-                    totalElements = Long.parseLong(totalElementsStr);
-                } catch (NumberFormatException e) {
-                    // 숫자 형식이 아니면 DB에서 조회
-                    totalElements = festivalRepository.count();
-                }
-            } else {
-                // 캐시에 값이 없으면 DB에서 조회
-                totalElements = festivalRepository.count();
-            }
-
-            return new PageImpl<>(cachedList, pageable, totalElements);
-        } catch (Exception e) {
-            System.err.println("Failed to deserialize cached data: " + e.getMessage());
-            redisTemplate.delete(cacheKey);
+    fun findPaginated(pageable: Pageable?): Page<FestivalTO> {
+        val festivals = festivalRepository!!.findAll(pageable)
+        val modelMapper = ModelMapper()
+        val page = festivals.map { festival: Festival? ->
+            modelMapper.map(
+                festival,
+                FestivalTO::class.java
+            )
         }
+        return page
     }
 
-    // 3. 캐시가 없는 경우 DB에서 조회
-    Page<FestivalTO> page = findPaginated(pageable);
-    System.out.println("Retrieved page: " + page.getContent());
+    fun findPaginatedWithCache(pageable: Pageable): Page<FestivalTO> {
+        val cacheKey = "festivals:page:" + pageable.pageNumber + ":" + pageable.pageSize
+        val totalElementsKey = "festivals:totalElements"
 
-    // 4. 페이지 데이터와 전체 개수를 캐시에 저장
-    redisTemplate.opsForValue().set(cacheKey, page.getContent(), Duration.ofHours(24));
-    redisTemplate.opsForValue().set(totalElementsKey, String.valueOf(page.getTotalElements()), Duration.ofHours(24));
+        // 1. 캐시된 페이지 데이터 확인
+        val cachedData = redisTemplate!!.opsForValue()[cacheKey]
+        if (cachedData != null) {
+            try {
+                val objectMapper = ObjectMapper()
+                objectMapper.registerModule(JavaTimeModule())
+                objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+
+                // List<FestivalTO>로 캐시 된 데이터 Deserialize
+                val cachedList: List<FestivalTO> = objectMapper.convertValue(
+                    cachedData,
+                    object : TypeReference<List<FestivalTO>>() {}  // List<FestivalTO> 타입으로 명확히 지정
+                )
+
+                // 2. 캐시된 totalElements 확인
+                val totalElementsStr = redisTemplate!!.opsForValue()[totalElementsKey] as String
+                var totalElements = if (totalElementsStr != null) {
+                    try {
+                        totalElementsStr.toLong()
+                    } catch (e: NumberFormatException) {
+                        // 숫자 형식이 아니면 DB에서 조회
+                        festivalRepository!!.count()
+                    }
+                } else {
+                    // 캐시에 값이 없으면 DB에서 조회
+                    festivalRepository!!.count()
+                }
+
+                return PageImpl(cachedList, pageable, totalElements)
+            } catch (e: Exception) {
+                System.err.println("Failed to deserialize cached data: " + e.message)
+                redisTemplate!!.delete(cacheKey)
+            }
+        }
+
+        // 3. 캐시가 없는 경우 DB에서 조회
+        val page = findPaginated(pageable)
+        println("Retrieved page: " + page.content)
+
+        // 4. 페이지 데이터와 전체 개수를 캐시에 저장
+        redisTemplate!!.opsForValue()[cacheKey, page.content] = Duration.ofHours(24)
+        redisTemplate!!.opsForValue()[totalElementsKey, page.totalElements.toString()] = Duration.ofHours(24)
 
 
-    return page;
-}
+        return page
+    }
 
     @Transactional(readOnly = true)
-    public FestivalTO findById(int id){
-        Festival festival = festivalRepository.findById(String.valueOf(id)).orElse(null);
-        if (festival == null) {
-            return null;
+    open fun findById(id: Int): FestivalTO? {
+        val festival = festivalRepository?.findById(id.toString())?.orElse(null) ?: return null
+        val modelMapper = ModelMapper()
+        val to = modelMapper.map(festival, FestivalTO::class.java)
+
+        val contentId: Int = festival.contentId
+        val details = getFestivalDescription(contentId)
+
+        to.festivalDetails = details
+
+        return to
+    }
+
+    fun search(keyword: String?, pageable: Pageable?): Page<FestivalTO> {
+        val festivalPage = festivalRepository!!.findByTitleContainingIgnoreCase(keyword, pageable)
+
+        val modelMapper = ModelMapper()
+        val page = festivalPage.map { festival: Festival? ->
+            modelMapper.map(
+                festival,
+                FestivalTO::class.java
+            )
         }
-        ModelMapper modelMapper = new ModelMapper();
-        FestivalTO to = modelMapper.map(festival, FestivalTO.class);
-
-        int contentId = festival.getContentId();
-        FestivalDetailsTO details = getFestivalDescription(contentId);
-
-        to.setFestivalDetails(details);
-
-        return to;
+        return page
     }
 
-    public Page<FestivalTO> search(String keyword, Pageable pageable) {
-        Page<Festival> festivalPage = festivalRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+    fun filterByMonth(year: Int?, month: Int?, pageable: Pageable?): Page<FestivalTO> {
+        val currentDate = LocalDate.now()
+        val safeYear = year ?: currentDate.year
+        val safeMonth = month ?: currentDate.monthValue
 
-        ModelMapper modelMapper = new ModelMapper();
-        Page<FestivalTO> page = festivalPage.map(festival -> modelMapper.map(festival, FestivalTO.class));
-        return page;
+        val yearMonth = YearMonth.of(safeYear, safeMonth)
+        val firstDayOfMonth = yearMonth.atDay(1)
+        val lastDayOfMonth = yearMonth.atEndOfMonth()
+
+        val modelMapper = ModelMapper()
+        val festivals = festivalRepository!!.findByMonth(firstDayOfMonth, lastDayOfMonth, pageable)
+        val page = festivals.map { festival: Festival? ->
+            modelMapper.map(
+                festival,
+                FestivalTO::class.java
+            )
+        }
+
+        return page
     }
 
-    public Page<FestivalTO> filterByMonth(int year, int month, Pageable pageable) {
-        YearMonth yearMonth = YearMonth.of(year, month);
-        LocalDate firstDayOfMonth = yearMonth.atDay(1);
-        LocalDate lastDayOfMonth = yearMonth.atEndOfMonth();
+    fun filterByRegion(region: String?, pageable: Pageable?): Page<FestivalTO> {
+        val festivals = festivalRepository!!.findByAddressContainingIgnoreCase(region, pageable)
 
-        ModelMapper modelMapper = new ModelMapper();
-        Page<Festival> festivals = festivalRepository.findByMonth(firstDayOfMonth, lastDayOfMonth, pageable);
-        Page<FestivalTO> page = festivals.map(festival -> new ModelMapper().map(festival, FestivalTO.class));
-
-        return page;
-    }
-
-    public Page<FestivalTO> filterByRegion(String region, Pageable pageable) {
-        Page<Festival> festivals = festivalRepository.findByAddressContainingIgnoreCase(region, pageable);
-
-        ModelMapper modelMapper = new ModelMapper();
-        Page<FestivalTO> page = festivals.map(festival -> modelMapper.map(festival, FestivalTO.class));
-        return page;
+        val modelMapper = ModelMapper()
+        val page = festivals.map { festival: Festival? ->
+            modelMapper.map(
+                festival,
+                FestivalTO::class.java
+            )
+        }
+        return page
     }
 }
-
