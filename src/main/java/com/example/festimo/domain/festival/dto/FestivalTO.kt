@@ -1,25 +1,18 @@
-package com.example.festimo.domain.festival.dto;
+package com.example.festimo.domain.festival.dto
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import java.time.LocalDate
 
-import java.time.LocalDate;
-
-@ToString
-@Getter
-@Setter
-public class FestivalTO {
-    private int festival_id;
-    private String title;
-    private String category;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private String address;
-    private String image;
-    private Float xCoordinate;
-    private Float yCoordinate;
-    private String phone;
-    private int contentId;
-    private FestivalDetailsTO festivalDetails;
-}
+data class FestivalTO(
+    val festival_id: Long = 0,
+    val title: String,
+    val category: String?,
+    val startDate: LocalDate?,
+    val endDate: LocalDate?,
+    val address: String,
+    val image: String?,
+    val xCoordinate: Float?,
+    val yCoordinate: Float?,
+    val phone: String?,
+    val contentId: Int,
+    var festivalDetails: FestivalDetailsTO?
+)
