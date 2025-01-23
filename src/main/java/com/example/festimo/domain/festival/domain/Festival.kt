@@ -1,34 +1,24 @@
-package com.example.festimo.domain.festival.domain;
+package com.example.festimo.domain.festival.domain
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import java.time.LocalDate
 
-import java.time.LocalDate;
-
-@NoArgsConstructor
-@ToString
-@Setter
-@Getter
 @Entity
-public class Festival {
+data class Festival(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int festival_id;
-    private String title;
-    private String category;
-    private String description;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private String address;
-    private String image;
-    private Float xCoordinate;
-    private Float yCoordinate;
-    private String phone;
-    private int contentId;
-}
+    val festivalId: Long = 0,
+    val title: String = "",
+    val category: String? = null,
+    val startDate: LocalDate? = null,
+    val endDate: LocalDate? = null,
+    val address: String? = "",
+    val image: String? = null,
+    val xCoordinate: Float? = null,
+    val yCoordinate: Float? = null,
+    val phone: String? = null,
+    val contentId: Int = 0
+)
