@@ -1,69 +1,50 @@
-package com.example.festimo.domain.post.dto;
+package com.example.festimo.domain.post.dto
 
-import com.example.festimo.domain.post.entity.Post;
-import com.example.festimo.domain.post.entity.PostCategory;
-import lombok.*;
+import com.example.festimo.domain.post.entity.Post
+import com.example.festimo.domain.post.entity.PostCategory
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+data class PostListResponse(
+    val id: Long? = null,
+    val nickname: String = "",
+    val avatar: String = "",
+    val time: String = "",
+    val title: String = "",
+    val content: String = "",
+    val tags: List<String> = emptyList(),
+    val replies: Int = 0,
+    val views: Int = 0,
+    val category: PostCategory? = null
+) {
+    constructor(post: Post) : this(
+        id = post.id,
+        nickname = post.user?.nickname ?: "",
+        avatar = when {
+            !post.user?.avatar.isNullOrEmpty() -> "/imgs/${post.user?.avatar}"
+            else -> "/imgs/default-avatar.png"
+        },
+        time = post.createdAt?.let { calculateTime(it) } ?: "Unknown time",
+        title = post.title,
+        content = post.content,
+        tags = post.tags.toList(),
+        replies = post.comments.size,
+        views = post.views,
+        category = post.category
+    )
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class PostListResponse {
-    private Long id;
-    private String nickname;
-    private String avatar;
-    private String time;
-    private String title;
-    private String content;
-    private List<String> tags;
-    private int replies;
-    private int views;
-    private PostCategory category;
+    companion object {
+        private fun calculateTime(createdAt: LocalDateTime): String {
+            val now = LocalDateTime.now()
+            val duration = Duration.between(createdAt, now)
 
-    public PostListResponse(Post post) {
-        this.id = post.getId();
-        this.nickname = post.getUser().getNickname();
-        this.avatar = (post.getUser().getAvatar() != null && !post.getUser().getAvatar().isEmpty())
-                ? "/imgs/" + post.getUser().getAvatar()
-                : "/imgs/default-avatar.png";
-        this.time = post.getCreatedAt() != null ? calculateTime(post.getCreatedAt()) : "Unknown time";
-        this.title = post.getTitle();
-        this.content = post.getContent();
-        this.tags = post.getTags() != null ? new ArrayList<>(post.getTags()) : new ArrayList<>();
-        this.replies = (post.getComments() != null)
-                ? post.getComments().size()
-                : 0;
-        this.views = post.getViews();
-        this.category = post.getCategory();
-    }
-
-    private String calculateTime(LocalDateTime createdAt) {
-        if (createdAt == null) {
-            return "Unknown time";
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        Duration duration = Duration.between(createdAt, now);
-
-        if (duration.toMinutes() < 60) {
-            long minutes = duration.toMinutes();
-            return minutes + (minutes == 1 ? " min ago" : " mins ago");
-        } else if (duration.toHours() < 24) {
-            long hours = duration.toHours();
-            return hours + (hours == 1 ? " hour ago" : " hours ago");
-        } else if (duration.toDays() <= 7) {
-            long days = duration.toDays();
-            return days + (days == 1 ? " day ago" : " days ago");
-        } else {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            return createdAt.format(formatter);
+            return when {
+                duration.toMinutes() < 60 -> "${duration.toMinutes()} ${if (duration.toMinutes() == 1L) "min" else "mins"} ago"
+                duration.toHours() < 24 -> "${duration.toHours()} ${if (duration.toHours() == 1L) "hour" else "hours"} ago"
+                duration.toDays() <= 7 -> "${duration.toDays()} ${if (duration.toDays() == 1L) "day" else "days"} ago"
+                else -> createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            }
         }
     }
 }

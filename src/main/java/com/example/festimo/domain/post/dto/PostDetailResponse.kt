@@ -1,37 +1,25 @@
-package com.example.festimo.domain.post.dto;
+package com.example.festimo.domain.post.dto
 
-import com.example.festimo.domain.post.entity.PostCategory;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.example.festimo.domain.post.entity.PostCategory
+import com.fasterxml.jackson.annotation.JsonInclude
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PostDetailResponse {
-    private Long id;
-    private String title;
-    private String nickname;
-    private String avatar;
-    private String mail;
-    private String content;
-    private PostCategory category;
-    private int views;
-    private int replies;
-    private int likes;
-    private Set<String> tags;
-    private String createdAt;
-    private String updatedAt;
-    private boolean isOwner;
-    private boolean isAdmin;
-    private boolean isLiked;
-    private List<CommentResponse> comments = new ArrayList<>();
-}
+data class PostDetailResponse(
+    var id: Long? = null,
+    var title: String = "",
+    var nickname: String = "",
+    var avatar: String? = null,
+    var mail: String? = null,
+    var content: String = "",
+    var category: PostCategory? = null,
+    var views: Int = 0,
+    var replies: Int = 0,
+    var likes: Int = 0,
+    var tags: Set<String> = emptySet(),
+    var createdAt: String? = null,
+    var updatedAt: String? = null,
+    var isOwner: Boolean = false,
+    var isAdmin: Boolean = false,
+    var isLiked: Boolean = false,
+    var comments: List<CommentResponse> = ArrayList()
+)

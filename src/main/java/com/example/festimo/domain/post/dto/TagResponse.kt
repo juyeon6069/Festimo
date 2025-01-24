@@ -1,13 +1,6 @@
-package com.example.festimo.domain.post.dto;
+package com.example.festimo.domain.post.dto
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class TagResponse {
-    private String name;
-    private int count;
-}
+data class TagResponse(
+    val name: String,
+    val count: Int
+)
