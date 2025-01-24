@@ -15,7 +15,7 @@ data class Festival(
     val category: String? = null,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
-    val address: String? = "",
+    val address: String = "",
     val image: String? = null,
     val xCoordinate: Float? = null,
     val yCoordinate: Float? = null,

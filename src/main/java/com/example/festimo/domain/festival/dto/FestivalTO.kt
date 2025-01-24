@@ -4,15 +4,15 @@ import java.time.LocalDate
 
 data class FestivalTO(
     val festival_id: Long = 0,
-    val title: String,
-    val category: String?,
-    val startDate: LocalDate?,
-    val endDate: LocalDate?,
-    val address: String,
-    val image: String?,
-    val xCoordinate: Float?,
-    val yCoordinate: Float?,
-    val phone: String?,
-    val contentId: Int,
-    var festivalDetails: FestivalDetailsTO?
+    val title: String = "",
+    val category: String? = null,
+    val startDate: LocalDate? = null,
+    val endDate: LocalDate? = null,
+    val address: String = "",
+    val image: String? = null,
+    val xCoordinate: Float? = null,
+    val yCoordinate: Float? = null,
+    val phone: String? = null,
+    val contentId: Int = 0,
+    var festivalDetails: FestivalDetailsTO? = null
 )
