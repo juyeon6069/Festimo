@@ -8,10 +8,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.modelmapper.ModelMapper
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -32,21 +32,27 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.ceil
 
 @Service
-open class FestivalService {
-    @Value("\${SEARCH_FESTIVAL_API_KEY}")
-    private val SEARCH_FESTIVAL_API_KEY: String? = null
+open class FestivalService (
+    @Value("\${SEARCH_FESTIVAL_API_KEY}") private val SEARCH_FESTIVAL_API_KEY: String,
+    @Value("\${INFO_FESTIVAL_API_KEY}") private val INFO_FESTIVAL_API_KEY: String,
+    @PersistenceContext private val entityManager: EntityManager,
+    private val festivalRepository: FestivalRepository,
+    private val redisTemplate: RedisTemplate<String, Object>
+) {
+    @PostConstruct
+    fun init() {
+        if (this.redisTemplate == null) {
+            throw IllegalStateException("RedisTemplate is not initialized properly.")
+        }else{
+            println("redisTemplate initialized: ${this.redisTemplate != null}")
+        }
 
-    @Value("\${INFO_FESTIVAL_API_KEY}")
-    private val INFO_FESTIVAL_API_KEY: String? = null
-
-    @Autowired
-    private val festivalRepository: FestivalRepository? = null
-
-    @PersistenceContext
-    private val entityManager: EntityManager? = null
-
-    @Autowired
-    private val redisTemplate: RedisTemplate<String, Any>? = null
+        if (this.festivalRepository == null) {
+            throw IllegalStateException("festivalRepository is not initialized properly.")
+        }else{
+            println("festivalRepository initialized: ${this.festivalRepository != null}")
+        }
+    }
 
     @Scheduled(cron = "0 0 0 * * ?")
     fun scheduleRefreshEvents() {
@@ -227,7 +233,7 @@ open class FestivalService {
     }
 
 
-    fun findPaginated(pageable: Pageable?): Page<FestivalTO> {
+    open fun findPaginated(pageable: Pageable?): Page<FestivalTO> {
         val festivals = festivalRepository!!.findAll(pageable)
         val modelMapper = ModelMapper()
         val page = festivals.map { festival: Festival? ->
@@ -239,7 +245,7 @@ open class FestivalService {
         return page
     }
 
-    fun findPaginatedWithCache(pageable: Pageable): Page<FestivalTO> {
+    open fun findPaginatedWithCache(pageable: Pageable): Page<FestivalTO> {
         val cacheKey = "festivals:page:" + pageable.pageNumber + ":" + pageable.pageSize
         val totalElementsKey = "festivals:totalElements"
 
@@ -283,9 +289,8 @@ open class FestivalService {
         println("Retrieved page: " + page.content)
 
         // 4. 페이지 데이터와 전체 개수를 캐시에 저장
-        redisTemplate!!.opsForValue()[cacheKey, page.content] = Duration.ofHours(24)
-        redisTemplate!!.opsForValue()[totalElementsKey, page.totalElements.toString()] = Duration.ofHours(24)
-
+        redisTemplate!!.opsForValue().set(cacheKey, page.content as Object, Duration.ofHours(24))
+        redisTemplate!!.opsForValue().set(totalElementsKey, page.totalElements.toString() as Object, Duration.ofHours(24))
 
         return page
     }
