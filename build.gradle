@@ -2,6 +2,11 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.0'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.jetbrains.kotlin.jvm' version '2.1.0'
+    id 'org.jetbrains.kotlin.plugin.spring' version '2.1.0'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '2.1.0'
+    id 'org.jetbrains.kotlin.plugin.allopen' version '2.1.0'
+    id 'org.jetbrains.kotlin.kapt' version '2.1.0'
 }
 
 group = 'com.example'
@@ -62,6 +67,18 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2'
     // 로깅
     implementation 'org.slf4j:slf4j-api'
+    // Kotlin
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:2.1.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+    // Mapstruct
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.Embeddable")
+    annotation("jakarta.persistence.MappedSuperclass")
 }
 
 tasks.named('test') {
