@@ -3,16 +3,16 @@ package com.example.festimo.domain.festival.dto
 import java.time.LocalDate
 
 data class FestivalTO(
-    val festival_id: Long = 0,
-    val title: String = "",
-    val category: String? = null,
-    val startDate: LocalDate? = null,
-    val endDate: LocalDate? = null,
-    val address: String = "",
-    val image: String? = null,
-    val xCoordinate: Float? = null,
-    val yCoordinate: Float? = null,
-    val phone: String? = null,
-    val contentId: Int = 0,
+    var festival_id: Long = 0,
+    var title: String = "",
+    var category: String? = null,
+    var startDate: LocalDate? = null,
+    var endDate: LocalDate? = null,
+    var address: String = "",
+    var image: String? = null,
+    var xCoordinate: Float? = null,
+    var yCoordinate: Float? = null,
+    var phone: String? = null,
+    var contentId: Int = 0,
     var festivalDetails: FestivalDetailsTO? = null
 )

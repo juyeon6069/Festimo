@@ -39,20 +39,6 @@ open class FestivalService (
     private val festivalRepository: FestivalRepository,
     private val redisTemplate: RedisTemplate<String, Object>
 ) {
-    @PostConstruct
-    fun init() {
-        if (this.redisTemplate == null) {
-            throw IllegalStateException("RedisTemplate is not initialized properly.")
-        }else{
-            println("redisTemplate initialized: ${this.redisTemplate != null}")
-        }
-
-        if (this.festivalRepository == null) {
-            throw IllegalStateException("festivalRepository is not initialized properly.")
-        }else{
-            println("festivalRepository initialized: ${this.festivalRepository != null}")
-        }
-    }
 
     @Scheduled(cron = "0 0 0 * * ?")
     fun scheduleRefreshEvents() {
@@ -153,7 +139,6 @@ open class FestivalService (
                         contentId = contentId,
                         festivalDetails = null
                     )
-
                     festivalList.add(festivalTO)
                 }
 
@@ -164,7 +149,6 @@ open class FestivalService (
         } catch (e: Exception) {
             System.err.println("Error: ${e.message}")
         }
-
         return festivalList
     }
 
@@ -303,13 +287,12 @@ open class FestivalService (
 
         val contentId: Int = festival.contentId
         val details = getFestivalDescription(contentId)
-
         to.festivalDetails = details
 
         return to
     }
 
-    fun search(keyword: String?, pageable: Pageable?): Page<FestivalTO> {
+    open fun search(keyword: String?, pageable: Pageable?): Page<FestivalTO> {
         val festivalPage = festivalRepository!!.findByTitleContainingIgnoreCase(keyword, pageable)
 
         val modelMapper = ModelMapper()
@@ -322,7 +305,7 @@ open class FestivalService (
         return page
     }
 
-    fun filterByMonth(year: Int?, month: Int?, pageable: Pageable?): Page<FestivalTO> {
+    open fun filterByMonth(year: Int?, month: Int?, pageable: Pageable?): Page<FestivalTO> {
         val currentDate = LocalDate.now()
         val safeYear = year ?: currentDate.year
         val safeMonth = month ?: currentDate.monthValue
@@ -343,7 +326,7 @@ open class FestivalService (
         return page
     }
 
-    fun filterByRegion(region: String?, pageable: Pageable?): Page<FestivalTO> {
+    open fun filterByRegion(region: String?, pageable: Pageable?): Page<FestivalTO> {
         val festivals = festivalRepository!!.findByAddressContainingIgnoreCase(region, pageable)
 
         val modelMapper = ModelMapper()

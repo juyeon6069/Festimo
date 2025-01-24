@@ -48,18 +48,22 @@ class FestivalController(
         @RequestParam(required = false) region: String?,
         @RequestParam(required = false) keyword: String?
     ): PagedModel<FestivalTO> {
+        return try {
+            val pageable: Pageable = PageRequest.of(page, size)
 
-        val pageable: Pageable = PageRequest.of(page, size)
+            val paginatedEvent: Page<FestivalTO> = when {
+                year != null && month != null -> festivalService.filterByMonth(year, month, pageable)
+                region != null -> festivalService.filterByRegion(region, pageable)
+                keyword != null && keyword.isNotEmpty() -> festivalService.search(keyword, pageable)
+                else -> festivalService.findPaginated(pageable)
+            }
 
-        val paginatedEvent: Page<FestivalTO> = when {
-            year != null && month != null -> festivalService.filterByMonth(year, month, pageable)
-            region != null -> festivalService.filterByRegion(region, pageable)
-            keyword != null && keyword.isNotEmpty() -> festivalService.search(keyword, pageable)
-            else -> festivalService.findPaginatedWithCache(pageable)
+            val pagedModel = pagedResourcesAssembler.toModel(paginatedEvent) { festival -> EntityModel.of(festival) }
+            PagedModel.of(pagedModel.content.map { it.content }, pagedModel.metadata)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw RuntimeException("전체 축제 조회 중 문제가 발생했습니다.", e)
         }
-
-        val pagedModel = pagedResourcesAssembler.toModel(paginatedEvent) { festival -> EntityModel.of(festival) }
-        return PagedModel.of(pagedModel.content.map { it.content }, pagedModel.metadata)
     }
 
     @ResponseBody
