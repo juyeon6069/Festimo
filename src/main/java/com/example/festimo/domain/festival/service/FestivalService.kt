@@ -109,36 +109,24 @@ open class FestivalService (
 
                 val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
                 for (item in itemList) {
-                    val title = item["title"] as? String ?: ""
-                    val address = (item["addr1"] as? String ?: "") + " " + (item["addr2"] as? String ?: "")
+                    val festivalTO = FestivalTO()
+                    festivalTO.title = item["title"] as? String ?: ""
+                    festivalTO.address = (item["addr1"] as? String ?: "") + " " + (item["addr2"] as? String ?: "")
 
-                    val category = when (item["cat2"] as? String) {
+                    festivalTO.category = when (item["cat2"] as? String) {
                         "A0207" -> "축제"
                         "A0208" -> "행사"
                         else -> "기타"
                     }
 
-                    val startDate = item["eventstartdate"]?.let { LocalDate.parse(it as CharSequence, formatter) }
-                    val endDate = item["eventenddate"]?.let { LocalDate.parse(it as CharSequence, formatter) }
-                    val image = item["firstimage"] as? String
-                    val xCoordinate = (item["mapx"] as? String)?.toFloat() ?: 0f
-                    val yCoordinate = (item["mapy"] as? String)?.toFloat() ?: 0f
-                    val phone = item["tel"] as? String
-                    val contentId = (item["contentid"] as? String)?.toInt() ?: 0
+                    festivalTO.startDate = item["eventstartdate"]?.let { LocalDate.parse(it as CharSequence, formatter) }
+                    festivalTO.endDate = item["eventenddate"]?.let { LocalDate.parse(it as CharSequence, formatter) }
+                    festivalTO.image = item["firstimage"] as? String
+                    festivalTO.xCoordinate = (item["mapx"] as? String)?.toFloat() ?: 0f
+                    festivalTO.yCoordinate = (item["mapy"] as? String)?.toFloat() ?: 0f
+                    festivalTO.phone = item["tel"] as? String
+                    festivalTO.contentId = (item["contentid"] as? String)?.toInt() ?: 0
 
-                    val festivalTO = FestivalTO(
-                        title = title,
-                        category = category,
-                        startDate = startDate,
-                        endDate = endDate,
-                        address = address,
-                        image = image,
-                        xCoordinate = xCoordinate,
-                        yCoordinate = yCoordinate,
-                        phone = phone,
-                        contentId = contentId,
-                        festivalDetails = null
-                    )
                     festivalList.add(festivalTO)
                 }
 
