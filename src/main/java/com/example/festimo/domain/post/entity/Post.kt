@@ -1,96 +1,74 @@
-package com.example.festimo.domain.post.entity;
+package com.example.festimo.domain.post.entity
 
-import com.example.festimo.domain.post.BaseTimeEntity;
-import com.example.festimo.domain.user.domain.User;
-import jakarta.persistence.*;
-import lombok.*;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.example.festimo.domain.post.BaseTimeEntity
+import com.example.festimo.domain.user.domain.User
+import jakarta.persistence.*
 
 @Entity
-@Table(indexes = {
-
-    @Index(name = "idx_post_created_at", columnList = "createdAt"),
-    @Index(name = "idx_post_likes", columnList = "likes")
-})
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Post extends BaseTimeEntity {
+@Table(indexes = [
+    Index(name = "idx_post_created_at", columnList = "createdAt"),
+    Index(name = "idx_post_likes", columnList = "likes")
+])
+class Post(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
-    private Long id;
+    var id: Long? = null,
 
     @Column(nullable = false, length = 50)
-    private String title;
+    var title: String,
 
     @Column(nullable = false, length = 15)
-    private String nickname;
+    var nickname: String,
 
-    private String avatar;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "tag")
-    @Builder.Default
-    private Set<String> tags = new HashSet<>();
-
-    private String mail;
-
-    private String password;
+    var avatar: String? = null,
+    var mail: String? = null,
+    var password: String? = null,
 
     @Enumerated(EnumType.STRING)
-    private PostCategory category;
+    var category: PostCategory,
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
-
-    @Builder.Default
-    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
-    private int views = 0;
-
-    @Builder.Default
-    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
-    private int replies = 0;
+    var content: String,
 
     @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
-    private int likes;
+    var views: Int = 0,
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    var replies: Int = 0,
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    var likes: Int = 0,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    var user: User? = null,
+
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = [CascadeType.REMOVE])
+    @OrderBy("sequence asc")
+    var comments: MutableList<Comment> = mutableListOf(),
 
     @ManyToMany
     @JoinTable(
         name = "post_likes",
-        joinColumns = @JoinColumn(name = "post_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
+        joinColumns = [JoinColumn(name = "post_id")],
+        inverseJoinColumns = [JoinColumn(name = "user_id")]
     )
-    @Builder.Default
-    private Set<User> likedByUsers = new HashSet<>();
+    var likedByUsers: MutableSet<User> = HashSet(),
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "post_tags", joinColumns = [JoinColumn(name = "post_id")])
+    @Column(name = "tag")
+    var tags: MutableSet<String> = HashSet()
+) : BaseTimeEntity() {
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @OrderBy("sequence asc")
-    private List<Comment> comments;
-
-    public void toggleLike(User user) {
+    fun toggleLike(user: User) {
         if (likedByUsers.contains(user)) {
-            likedByUsers.remove(user);
-            this.likes--;
+            likedByUsers.remove(user)
+            likes--
         } else {
-            likedByUsers.add(user);
-            this.likes++;
+            likedByUsers.add(user)
+            likes++
         }
-    }
-
-    public void update(String title, String content, PostCategory category) {
-        this.title = title;
-        this.content = content;
-        this.category = category;
     }
 }
