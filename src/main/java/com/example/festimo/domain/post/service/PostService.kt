@@ -1,48 +1,45 @@
-package com.example.festimo.domain.post.service;
+package com.example.festimo.domain.post.service
 
-import com.example.festimo.domain.post.dto.*;
-import com.example.festimo.global.dto.PageResponse;
-import jakarta.validation.Valid;
-import org.springframework.security.core.Authentication;
+import com.example.festimo.domain.post.dto.*
+import com.example.festimo.global.dto.PageResponse
+import jakarta.validation.Valid
+import org.springframework.security.core.Authentication
 
-import java.util.List;
-
-public interface PostService {
-
+interface PostService {
     // 게시글 등록
-    void createPost(@Valid PostRequest request, Authentication authentication);
+    fun createPost(@Valid request: PostRequest, authentication: Authentication)
 
     // 전체 게시글 조회
-    PageResponse<PostListResponse> getAllPosts(int page, int size);
+    fun getAllPosts(page: Int, size: Int): PageResponse<PostListResponse>
 
     // 게시글 상세 조회
-    PostDetailResponse getPostById(Long postId, boolean incrementView, Authentication authentication);
+    fun getPostById(postId: Long, incrementView: Boolean, authentication: Authentication): PostDetailResponse
 
     // 게시글 수정
-    PostDetailResponse updatePost(Long postId, @Valid UpdatePostRequest request);
+    fun updatePost(postId: Long, @Valid request: UpdatePostRequest): PostDetailResponse
 
     // 게시글 삭제
-    void deletePost(Long postId, String password, Authentication authentication);
+    fun deletePost(postId: Long, password: String, authentication: Authentication)
 
     // 주간 인기 글
-    void clearWeeklyTopPostsCache();
-    List<PostListResponse> getCachedWeeklyTopPosts();
+    fun clearWeeklyTopPostsCache()
+    fun getCachedWeeklyTopPosts(): List<PostListResponse>
 
     // 게시글 검색
-    List<PostListResponse> searchPosts(String keyword);
+    fun searchPosts(keyword: String): List<PostListResponse>
 
     // 좋아요
-    PostDetailResponse toggleLike(Long postId, Authentication authentication);
+    fun toggleLike(postId: Long, authentication: Authentication): PostDetailResponse
 
     // 댓글 목록 조회
-    List<CommentResponse> getComments(Long postId);
+    fun getComments(postId: Long): List<CommentResponse>
 
     // 댓글 등록
-    CommentResponse createComment(Long postId, @Valid CommentRequest commentDto, Authentication authentication);
+    fun createComment(postId: Long, @Valid request: CommentRequest, authentication: Authentication): CommentResponse
 
     // 댓글 수정
-    CommentResponse updateComment(Long postId, Integer sequence, @Valid UpdateCommentRequest commentDto, Authentication authentication);
+    fun updateComment(postId: Long, sequence: Int, @Valid request: UpdateCommentRequest, authentication: Authentication): CommentResponse
 
     // 댓글 삭제
-    void deleteComment(Long postId, Integer sequence, Authentication authentication);
+    fun deleteComment(postId: Long, sequence: Int, authentication: Authentication)
 }

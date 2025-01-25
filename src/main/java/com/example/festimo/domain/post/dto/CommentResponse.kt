@@ -10,8 +10,8 @@ data class CommentResponse(
     val comment: String,
     val nickname: String,
     val postId: Long,
-    var isOwner: Boolean = false,
-    var isAdmin: Boolean = false,
+    var owner: Boolean = false,
+    var admin: Boolean = false,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime?,
 

@@ -1,356 +1,298 @@
-package com.example.festimo.domain.post.service;
+package com.example.festimo.domain.post.service
 
-import com.example.festimo.domain.meet.entity.Companion;
-import com.example.festimo.domain.meet.repository.CompanionMemberRepository;
-import com.example.festimo.domain.meet.repository.CompanionRepository;
-import com.example.festimo.domain.meet.service.CompanionService;
-import com.example.festimo.domain.post.dto.*;
-import com.example.festimo.domain.post.entity.Comment;
-import com.example.festimo.domain.post.entity.Post;
-import com.example.festimo.domain.post.entity.PostCategory;
-import com.example.festimo.domain.post.repository.CommentRepository;
-import com.example.festimo.domain.post.repository.PostRepository;
-import com.example.festimo.domain.user.domain.User;
-import com.example.festimo.domain.user.repository.UserRepository;
-import com.example.festimo.exception.*;
-import com.example.festimo.global.dto.PageResponse;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
-import org.hibernate.Hibernate;
-import org.modelmapper.ModelMapper;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.data.domain.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
+import com.example.festimo.domain.meet.repository.CompanionMemberRepository
+import com.example.festimo.domain.meet.repository.CompanionRepository
+import com.example.festimo.domain.meet.service.CompanionService
+import com.example.festimo.domain.post.dto.*
+import com.example.festimo.domain.post.entity.Comment
+import com.example.festimo.domain.post.entity.Post
+import com.example.festimo.domain.post.entity.PostCategory
+import com.example.festimo.domain.post.mapper.CommentMapper
+import com.example.festimo.domain.post.mapper.PostMapper
+import com.example.festimo.domain.post.repository.CommentRepository
+import com.example.festimo.domain.post.repository.PostRepository
+import com.example.festimo.domain.user.domain.User
+import com.example.festimo.domain.user.repository.UserRepository
+import com.example.festimo.exception.*
+import com.example.festimo.global.dto.PageResponse
+import org.hibernate.Hibernate
+import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.annotation.EnableCaching
+import org.springframework.data.domain.*
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.validation.annotation.Validated
+import java.time.LocalDateTime
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Slf4j
 @Service
 @Validated
-@RequiredArgsConstructor
 @EnableCaching
-public class PostServiceImpl implements PostService {
+class PostServiceImpl(
+    private val postRepository: PostRepository,
+    private val userRepository: UserRepository,
+    private val postMapper: PostMapper,
+    private val commentMapper: CommentMapper,
+    private val commentRepository: CommentRepository,
+    private val companionService: CompanionService,
+    private val companionRepository: CompanionRepository,
+    private val companionMemberRepository: CompanionMemberRepository
+) : PostService {
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-    private final PostRepository postRepository;
-    private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
-    private final CommentRepository commentRepository;
-    private final CompanionService companionService;
-    private final CompanionRepository companionRepository;
-    private final CompanionMemberRepository companionMemberRepository;
-
-    // 게시글 등록
     @Transactional
-    @Override
-    public void createPost(
-            @Valid PostRequest request,
-            Authentication authentication) {
-        User user = validateAuthenticationAndGetUser(authentication);
+    override fun createPost(request: PostRequest, authentication: Authentication) {
+        val user = validateAuthenticationAndGetUser(authentication)
 
-        Post post = Post.builder()
-                .title(request.getTitle())
-                .nickname(user.getNickname())
-                .mail(user.getEmail())
-                .password(request.getPassword())
-                .content(request.getContent())
-                .category(request.getCategory())
-                .tags(request.getTags() != null ? new HashSet<>(request.getTags()) : new HashSet<>())
-                .user(user)
-                .build();
+        val post = Post(
+            title = request.title,
+            nickname = user.nickname,
+            mail = user.email,
+            password = request.password,
+            content = request.content,
+            category = request.category,
+            tags = request.tags?.toMutableSet() ?: mutableSetOf(),
+            user = user
+        )
 
-        Post savedPost = postRepository.save(post);
+        val savedPost = postRepository.save(post)
 
-        // 카테고리가 COMPANION인 경우 동행 생성
-        if (savedPost.getCategory() == PostCategory.COMPANION) {
-            companionService.createCompanion(savedPost.getId(), user.getEmail());
+        if (savedPost.category == PostCategory.COMPANION) {
+            savedPost.id?.let { postId ->
+                companionService.createCompanion(postId, user.email)
+            }
         }
 
-        clearWeeklyTopPostsCache();
+        clearWeeklyTopPostsCache()
     }
 
-    // 게시글 전체 조회
-    @Override
-    public PageResponse<PostListResponse> getAllPosts(int page, int size) {
+    override fun getAllPosts(page: Int, size: Int): PageResponse<PostListResponse> {
         if (page < 1 || size <= 0) {
-            throw new InvalidPageRequest();
+            throw InvalidPageRequest()
         }
 
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        val pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+        val posts = postRepository.findAll(pageable)
 
-        Page<Post> posts = postRepository.findAll(pageable);
-
-        if (posts.isEmpty()) {
-            throw new NoContent();
+        if (posts.isEmpty) {
+            throw NoContent()
         }
 
-        List<PostListResponse> responseList = posts.stream()
-                .map(PostListResponse::new)
-                .collect(Collectors.toList());
-
-        return new PageResponse<>(new PageImpl<>(responseList, pageable, posts.getTotalElements()));
+        val responseList = posts.content.map { PostListResponse(it) }
+        return PageResponse(PageImpl(responseList, pageable, posts.totalElements))
     }
 
-    // 게시글 상세 조회
     @Transactional
-    @Override
-    public PostDetailResponse getPostById(Long postId, boolean incrementView, Authentication authentication) {
-        User user = validateAuthenticationAndGetUser(authentication);
-
-        Post post = postRepository.findByIdWithDetails(postId).orElseThrow(PostNotFound::new);
+    override fun getPostById(postId: Long, incrementView: Boolean, authentication: Authentication): PostDetailResponse {
+        val user = validateAuthenticationAndGetUser(authentication)
+        val post = postRepository.findByIdWithDetails(postId) ?: throw PostNotFound()
 
         if (incrementView) {
-            postRepository.incrementViews(postId);
-            post.setViews(post.getViews() + 1); // 클라이언트로 즉시 반영
+            postRepository.incrementViews(postId)
+            post.views += 1
         }
 
-        boolean isOwner = post.getUser().getId().equals(user.getId());
-        boolean isAdmin = user.getRole().equals(User.Role.ADMIN);
-        boolean isLiked = post.getLikedByUsers().stream()
-                .anyMatch(likedUser -> likedUser.getId().equals(user.getId()));
-
-
-        List<CommentResponse> comments = post.getComments().stream()
-                .map(comment -> new CommentResponse(
-                        comment.getSequence(),
-                        comment.getComment(),
-                        comment.getNickname(),
-                        post.getId(),
-                        comment.getCreatedAt(),
-                        comment.getUpdatedAt(),
-                        comment.getNickname().equals(user.getNickname()),
-                        isAdmin
-                ))
-                .collect(Collectors.toList());
-
-        PostDetailResponse response = modelMapper.map(post, PostDetailResponse.class);
-        response.setOwner(isOwner);
-        response.setAdmin(isAdmin);
-        response.setComments(comments);
-        response.setTags(post.getTags());
-        response.setReplies(comments.size());
-        response.setLiked(isLiked);
-        return response;
-    }
-
-    // 게시글 수정
-    @Transactional
-    @Override
-    public PostDetailResponse updatePost(Long postId, @Valid UpdatePostRequest request) {
-        User user = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())
-                .orElseThrow(UnauthorizedException::new);
-
-        Post post = postRepository.findById(postId).orElseThrow(PostNotFound::new);
-
-        if (ObjectUtils.isEmpty(request.getPassword()) || !post.getPassword().equals(request.getPassword())) {
-            throw new InvalidPasswordException();
+        return postMapper.postToPostDetailResponse(post).apply {
+            owner = post.user?.id == user.id
+            admin = user.role == User.Role.ADMIN
+            liked = post.likedByUsers.any { it.id == user.id }
+            comments = post.comments.map { comment ->
+                commentMapper.toCommentResponse(comment).apply {
+                    owner = comment.nickname == user.nickname
+                    admin = user.role == User.Role.ADMIN
+                }
+            }
         }
-
-        if (request.getTitle() == null && request.getContent() == null && request.getCategory() == null) {
-            throw new IllegalArgumentException("수정할 필드가 없습니다.");
-        }
-
-        String newTitle = request.getTitle() != null ? request.getTitle() : post.getTitle();
-        String newContent = request.getContent() != null ? request.getContent() : post.getContent();
-        PostCategory newCategory = request.getCategory() != null ? request.getCategory() : post.getCategory();
-
-        post.update(newTitle, newContent, newCategory);
-        postRepository.saveAndFlush(post);
-
-        PostDetailResponse response = modelMapper.map(post, PostDetailResponse.class);
-        response.setOwner(post.getUser().getId().equals(user.getId()));
-        response.setAdmin(user.getRole().equals(User.Role.ADMIN));
-
-        clearWeeklyTopPostsCache();
-        return response;
     }
 
     @Transactional
-    @Override
-    public void deletePost(Long postId, String password, Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(UnauthorizedException::new);
-        Post post = postRepository.findById(postId).orElseThrow(PostNotFound::new);
+    override fun updatePost(postId: Long, request: UpdatePostRequest): PostDetailResponse {
+        val user = SecurityContextHolder.getContext().authentication?.name?.let { email ->
+            userRepository.findByEmail(email).orElseThrow { UnauthorizedException() }
+        } ?: throw UnauthorizedException()
 
-        // 1. 게시글 작성자/비밀번호 체크
-        if (post.getUser().equals(user)) {
-            if (!post.getPassword().equals(password)) {
-                throw new InvalidPasswordException();
-            }
-        } else if (!user.getRole().equals(User.Role.ADMIN)) {
-            throw new PostDeleteAuthorizationException();
+        val post = postRepository.findById(postId).orElseThrow { PostNotFound() }
+
+        if (request.password.isNullOrEmpty() || post.password != request.password) {
+            throw InvalidPasswordException()
         }
 
-        // 2. 게시글이 동행 카테고리인 경우에만 동행 데이터 삭제
-        if (post.getCategory() == PostCategory.COMPANION) {
-            Companion companion = companionRepository.findByPost(post)
-                    .orElse(null);
-            if (companion != null) {
-                // companion_member 테이블의 관련 데이터 삭제
-                companionMemberRepository.deleteByCompanion_CompanionId(companion.getCompanionId());
-                // companion 테이블의 데이터 삭제
-                companionRepository.delete(companion);
-            }
+        if (request.title == null && request.content == null && request.category == null) {
+            throw IllegalArgumentException("수정할 필드가 없습니다.")
         }
 
-        // 3. 게시글 삭제
-        postRepository.delete(post);
-        clearWeeklyTopPostsCache();
+        post.apply {
+            title = request.title ?: title
+            content = request.content ?: content
+            category = request.category ?: category
+        }
+
+        postRepository.saveAndFlush(post)
+        clearWeeklyTopPostsCache()
+
+        return postMapper.postToPostDetailResponse(post).apply {
+            owner = post.user?.id == user.id
+            admin = user.role == User.Role.ADMIN
+        }
     }
 
-    // 주간 인기 게시글
-    @Cacheable(value = "posts:weeklyTopPosts",
-            key = "#root.method.name + '_' + T(java.time.LocalDate).now().toString()",
-            unless = "#result == null || #result.isEmpty()")
+    @Transactional
+    override fun deletePost(postId: Long, password: String, authentication: Authentication) {
+        val user = validateAuthenticationAndGetUser(authentication)
+        val post = postRepository.findById(postId).orElseThrow { PostNotFound() }
+
+        when {
+            post.user == user -> {
+                if (post.password != password) throw InvalidPasswordException()
+            }
+            user.role != User.Role.ADMIN -> throw PostDeleteAuthorizationException()
+        }
+
+        if (post.category == PostCategory.COMPANION) {
+            companionRepository.findByPost(post).orElse(null)?.let { companion ->
+                companion.companionId?.let { id ->
+                    companionMemberRepository.deleteByCompanion_CompanionId(id)
+                    companionRepository.delete(companion)
+                }
+            }
+        }
+
+        postRepository.delete(post)
+        clearWeeklyTopPostsCache()
+    }
+
+    @Cacheable(
+        value = ["posts:weeklyTopPosts"],
+        key = "#root.method.name + '_' + T(java.time.LocalDate).now().toString()",
+        unless = "#result == null || #result.isEmpty()"
+    )
     @Transactional(readOnly = true)
-    public List<PostListResponse> getCachedWeeklyTopPosts() {
-        try {
-            LocalDateTime lastWeek = LocalDateTime.now().minusDays(7);
-            List<Post> posts = postRepository.findTopPostsOfWeek(lastWeek);
-
-            return posts.stream()
-                    .map(post -> {
-                        Hibernate.initialize(post.getTags());
-                        return new PostListResponse(post);
-                    })
-                    .limit(5)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("주간 인기 게시물 조회 중 오류 발생", e);
-            return Collections.emptyList();
+    override fun getCachedWeeklyTopPosts(): List<PostListResponse> {
+        return try {
+            val lastWeek = LocalDateTime.now().minusDays(7)
+            postRepository.findTopPostsOfWeek(lastWeek)
+                .map { post ->
+                    Hibernate.initialize(post.tags)
+                    PostListResponse(post)
+                }
+                .take(5)
+        } catch (e: Exception) {
+            logger.error("주간 인기 게시물 조회 중 오류 발생", e)
+            emptyList()
         }
     }
 
-    @CacheEvict(value = "posts:weeklyTopPosts")
-    public void clearWeeklyTopPostsCache() {
+    @CacheEvict(value = ["posts:weeklyTopPosts"])
+    override fun clearWeeklyTopPostsCache() {
         // 캐시 초기화
     }
 
-    // 게시글 검색
-    @Override
-    public List<PostListResponse> searchPosts(String keyword) {
-        return postRepository.searchPostsByKeyword(keyword)
-                .stream()
-                .map(PostListResponse::new)
-                .collect(Collectors.toList());
+    override fun searchPosts(keyword: String): List<PostListResponse> =
+        postRepository.searchPostsByKeyword(keyword)
+            .map { PostListResponse(it) }
+
+    override fun getComments(postId: Long): List<CommentResponse> {
+        val user = SecurityContextHolder.getContext().authentication?.name?.let { email ->
+            userRepository.findByEmail(email).orElseThrow { UnauthorizedException() }
+        } ?: throw UnauthorizedException()
+
+        val post = postRepository.findById(postId).orElseThrow { PostNotFound() }
+        val comments = commentRepository.findByPostOrderBySequenceAsc(post)
+
+        return comments.map { comment ->
+            commentMapper.toCommentResponse(comment).apply {
+                owner = comment.nickname == user.nickname
+                admin = user.role == User.Role.ADMIN
+            }
+        }
     }
 
-    // 댓글 목록 조회
-    @Override
-    public List<CommentResponse> getComments(Long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(PostNotFound::new);
-        List<Comment> comments = commentRepository.findByPostOrderBySequenceAsc(post);
-
-        String currentUserNickname = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(currentUserNickname).orElseThrow(UnauthorizedException::new);
-
-        return comments.stream()
-                .map(comment -> {
-                    CommentResponse response = modelMapper.map(comment, CommentResponse.class);
-                    // 현재 사용자가 댓글 작성자인지
-                    response.setOwner(comment.getNickname().equals(currentUser.getNickname()));
-                    // 현재 사용자가 관리자인지
-                    response.setAdmin(currentUser.getRole().equals(User.Role.ADMIN));
-                    return response;
-                })
-                .collect(Collectors.toList());
-    }
-
-    // 댓글 등록
     @Transactional
-    @Override
-    public CommentResponse createComment(Long postId, @Valid CommentRequest request, Authentication authentication) {
-        User user = validateAuthenticationAndGetUser(authentication);
-        Post post = postRepository.findById(postId).orElseThrow(PostNotFound::new);
+    override fun createComment(postId: Long, request: CommentRequest, authentication: Authentication): CommentResponse {
+        val user = validateAuthenticationAndGetUser(authentication)
+        val post = postRepository.findById(postId).orElseThrow { PostNotFound() }
 
-        Integer maxSequence = commentRepository.findMaxSequenceByPost(post);
-        Integer nextSequence = (maxSequence == null) ? 1 : maxSequence + 1;
+        val maxSequence = commentRepository.findMaxSequenceByPost(post)
+        val nextSequence = maxSequence?.plus(1) ?: 1
 
-        Comment comment = Comment.builder()
-                .comment(request.getComment())
-                .nickname(user.getNickname())
-                .post(post)
-                .sequence(nextSequence)
-                .build();
-        commentRepository.save(comment);
+        val comment = Comment(
+            comment = request.comment,
+            nickname = user.nickname,
+            post = post,
+            sequence = nextSequence
+        )
 
-        CommentResponse response = modelMapper.map(comment, CommentResponse.class);
-        response.setOwner(true);  // 새로 작성한 댓글은 현재 사용자가 작성자
-        response.setAdmin(user.getRole().equals(User.Role.ADMIN));
+        val savedComment = commentRepository.save(comment)
 
-        return modelMapper.map(comment, CommentResponse.class);
+        return commentMapper.toCommentResponse(savedComment).apply {
+            owner = true
+            admin = user.role == User.Role.ADMIN
+        }
     }
 
-    // 댓글 수정
     @Transactional
-    @Override
-    public CommentResponse updateComment(Long postId, Integer sequence, @Valid UpdateCommentRequest request, Authentication authentication) {
-        User user = validateAuthenticationAndGetUser(authentication);
+    override fun updateComment(
+        postId: Long,
+        sequence: Int,
+        request: UpdateCommentRequest,
+        authentication: Authentication
+    ): CommentResponse {
+        val user = validateAuthenticationAndGetUser(authentication)
 
         if (!postRepository.existsById(postId)) {
-            throw new PostNotFound();
+            throw PostNotFound()
         }
 
-        Comment comment = commentRepository.findByPostIdAndSequence(postId, sequence).orElseThrow(CommentNotFound::new);
+        val comment = commentRepository.findByPostIdAndSequence(postId, sequence)
+            ?: throw CommentNotFound()
 
-        if (!comment.getNickname().equals(user.getNickname())) {
-            throw new CommentUpdateAuthorizationException();
+        if (comment.nickname != user.nickname) {
+            throw CommentUpdateAuthorizationException()
         }
 
-        comment.updateContent(request.getComment());
-        commentRepository.saveAndFlush(comment);
+        comment.updateContent(request.comment)
+        val updatedComment = commentRepository.saveAndFlush(comment)
 
-        return modelMapper.map(comment, CommentResponse.class);
+        return commentMapper.toCommentResponse(updatedComment)
     }
 
-    private User validateAuthenticationAndGetUser(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedException();
-        }
-        return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(UnauthorizedException::new);
-    }
-
-    // 댓글 삭제
     @Transactional
-    @Override
-    public void deleteComment(Long postId, Integer sequence, Authentication authentication) {
-        User user = validateAuthenticationAndGetUser(authentication);
+    override fun deleteComment(postId: Long, sequence: Int, authentication: Authentication) {
+        val user = validateAuthenticationAndGetUser(authentication)
 
         if (!postRepository.existsById(postId)) {
-            throw new PostNotFound();
+            throw PostNotFound()
         }
 
-        Comment comment = commentRepository.findByPostIdAndSequence(postId, sequence).orElseThrow(CommentNotFound::new);
+        val comment = commentRepository.findByPostIdAndSequence(postId, sequence)
+            ?: throw CommentNotFound()
 
-        if (!comment.getNickname().equals(user.getNickname()) && !user.getRole().equals(User.Role.ADMIN)) {
-            throw new CommentDeleteAuthorizationException();
+        if (comment.nickname != user.nickname && user.role != User.Role.ADMIN) {
+            throw CommentDeleteAuthorizationException()
         }
 
-        commentRepository.delete(comment);
+        commentRepository.delete(comment)
     }
 
-    // 좋아요
     @Transactional
-    @Override
-    public PostDetailResponse toggleLike(Long postId, Authentication authentication) {
-        User user = validateAuthenticationAndGetUser(authentication);
-        Post post = postRepository.findById(postId).orElseThrow(PostNotFound::new);
+    override fun toggleLike(postId: Long, authentication: Authentication): PostDetailResponse {
+        val user = validateAuthenticationAndGetUser(authentication)
+        val post = postRepository.findById(postId).orElseThrow { PostNotFound() }
 
-        post.toggleLike(user);
-        postRepository.save(post);
+        post.toggleLike(user)
+        postRepository.save(post)
 
-        return modelMapper.map(post, PostDetailResponse.class);
+        return postMapper.postToPostDetailResponse(post)
+    }
+
+    private fun validateAuthenticationAndGetUser(authentication: Authentication): User {
+        if (!authentication.isAuthenticated) {
+            throw UnauthorizedException()
+        }
+        return userRepository.findByEmail(authentication.name)
+            .orElseThrow { UnauthorizedException() }
     }
 }

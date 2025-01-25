@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class PostDetailResponse(
     var id: Long? = null,
+    var postId: Long? = null,
     var title: String = "",
     var nickname: String = "",
     var avatar: String? = null,
@@ -18,8 +19,8 @@ data class PostDetailResponse(
     var tags: Set<String> = emptySet(),
     var createdAt: String? = null,
     var updatedAt: String? = null,
-    var isOwner: Boolean = false,
-    var isAdmin: Boolean = false,
-    var isLiked: Boolean = false,
+    var owner: Boolean = false,
+    var admin: Boolean = false,
+    var liked: Boolean = false,
     var comments: List<CommentResponse> = ArrayList()
 )
