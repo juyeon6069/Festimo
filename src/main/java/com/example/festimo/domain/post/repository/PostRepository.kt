@@ -6,13 +6,12 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
-import java.util.*
 
 interface PostRepository : JpaRepository<Post, Long> {
 
     // 게시글 상세 정보 조회
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.comments LEFT JOIN FETCH p.tags WHERE p.id = :postId")
-    fun findByIdWithDetails(@Param("postId") postId: Long): Optional<Post>
+    fun findByIdWithDetails(@Param("postId") postId: Long): Post?
 
     // 조회 수 증가
     @Modifying
