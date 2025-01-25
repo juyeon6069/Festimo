@@ -1,92 +1,77 @@
-package com.example.festimo.domain.meet.controller;
+package com.example.festimo.domain.meet.controller
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import org.springframework.web.bind.annotation.*;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
-import static com.example.festimo.exception.ErrorCode.USER_NOT_FOUND;
-
-import com.example.festimo.domain.meet.dto.CompanionRequest;
-import com.example.festimo.domain.meet.dto.CompanionResponse;
-import com.example.festimo.domain.meet.service.CompanionService;
-import com.example.festimo.domain.user.domain.User;
-import com.example.festimo.domain.user.repository.UserRepository;
-import com.example.festimo.exception.CustomException;
-import com.example.festimo.global.utils.jwt.JwtTokenProvider;
-
+import com.example.festimo.domain.meet.dto.CompanionRequest
+import com.example.festimo.domain.meet.dto.CompanionResponse
+import com.example.festimo.domain.meet.service.CompanionService
+import com.example.festimo.domain.user.domain.User
+import com.example.festimo.domain.user.repository.UserRepository
+import com.example.festimo.exception.CustomException
+import com.example.festimo.exception.ErrorCode.USER_NOT_FOUND
+import com.example.festimo.global.utils.jwt.JwtTokenProvider
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/meet")
 @Tag(name = "동행 API", description = "동행 관련 API")
-public class CompanionController {
-
-    private final CompanionService companionService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
-
-    public CompanionController(CompanionService companionService, JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
-        this.companionService = companionService;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userRepository = userRepository;
+class CompanionController(
+    private val companionService: CompanionService,
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val userRepository: UserRepository
+) {
+    private fun getEmailFromHeader(authorizationHeader: String): String {
+        val token = authorizationHeader.replace("Bearer ", "")
+        return jwtTokenProvider.getEmailFromToken(token)
     }
 
-    private String getEmailFromHeader(String authorizationHeader) {
-        String token = authorizationHeader.replace("Bearer ", "");
-        return jwtTokenProvider.getEmailFromToken(token);
-    }
-
-    private User getUserFromEmail(String email) {
-
+    private fun getUserFromEmail(email: String): User {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+            .orElseThrow { CustomException(USER_NOT_FOUND) }
     }
 
     @PostMapping("/companions")
     @Operation(summary = "동행 생성")
-    public ResponseEntity<Void> createCompanion(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody CompanionRequest request) {
-
-        String email = getEmailFromHeader(authorizationHeader);
-        companionService.createCompanion(request.getPostId(), email);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    fun createCompanion(
+        @RequestHeader("Authorization") authorizationHeader: String,
+        @RequestBody request: CompanionRequest
+    ): ResponseEntity<Void> {
+        val email = getEmailFromHeader(authorizationHeader)
+        companionService.createCompanion(request.postId, email)
+        return ResponseEntity.status(HttpStatus.CREATED).build()
     }
 
     @DeleteMapping("/{companionId}")
     @Operation(summary = "동행 취소")
-    public ResponseEntity<Void> deleteCompanion(
-            @PathVariable Long companionId,
-            @RequestHeader("Authorization") String authorizationHeader) {
-
-        String email = getEmailFromHeader(authorizationHeader);
-        companionService.deleteCompanion(companionId, email);
-        return ResponseEntity.noContent().build();
-
+    fun deleteCompanion(
+        @PathVariable companionId: Long,
+        @RequestHeader("Authorization") authorizationHeader: String
+    ): ResponseEntity<Void> {
+        val email = getEmailFromHeader(authorizationHeader)
+        companionService.deleteCompanion(companionId, email)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping("/companions/mine")
     @Operation(summary = "내 동행 찾기")
-    public ResponseEntity<Map<String, Object>> getMyCompanions(
-            @RequestHeader("Authorization") String authorizationHeader) {
+    fun getMyCompanions(
+        @RequestHeader("Authorization") authorizationHeader: String
+    ): ResponseEntity<Map<String, List<CompanionResponse>>> {
+        val email = getEmailFromHeader(authorizationHeader)
+        val user = getUserFromEmail(email)
 
-        String email = getEmailFromHeader(authorizationHeader);
-        User user = getUserFromEmail(email);
+        // 리더로 참여한 동행과 멤버로 참여한 동행 조회
+        val asLeader = companionService.getCompanionAsLeader(user.id)
+        val asMember = companionService.getCompanionAsMember(user.id)
 
-        List<CompanionResponse> asLeader = companionService.getCompanionAsLeader(user.getId());
-        List<CompanionResponse> asMember = companionService.getCompanionAsMember(user.getId());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("asLeader", asLeader);
-        response.put("asMember", asMember);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+            mapOf(
+                "asLeader" to asLeader,
+                "asMember" to asMember
+            )
+        )
     }
+
 }
