@@ -1,7 +1,3 @@
-package com.example.festimo.exception;
+package com.example.festimo.exception
 
-public class NoContent extends CustomException {
-    public NoContent() {
-        super(ErrorCode.NO_CONTENT);
-    }
-}
+class NoContent : CustomException(ErrorCode.NO_CONTENT)

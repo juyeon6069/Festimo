@@ -1,7 +1,3 @@
-package com.example.festimo.exception;
+package com.example.festimo.exception
 
-public class UnauthorizedException extends CustomException {
-    public UnauthorizedException() {
-        super(ErrorCode.UNAUTHORIZED_EXCEPTION);
-    }
-}
+class UnauthorizedException : CustomException(ErrorCode.UNAUTHORIZED_EXCEPTION)

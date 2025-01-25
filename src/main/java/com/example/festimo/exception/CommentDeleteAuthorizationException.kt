@@ -1,7 +1,3 @@
-package com.example.festimo.exception;
+package com.example.festimo.exception
 
-public class CommentDeleteAuthorizationException extends CustomException{
-    public CommentDeleteAuthorizationException() {
-        super(ErrorCode.COMMENT_DELETE_AUTHORIZATION_EXCEPTION);
-    }
-}
+class CommentDeleteAuthorizationException : CustomException(ErrorCode.COMMENT_DELETE_AUTHORIZATION_EXCEPTION)

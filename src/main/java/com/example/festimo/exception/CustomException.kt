@@ -1,12 +1,3 @@
-package com.example.festimo.exception;
+package com.example.festimo.exception
 
-import lombok.Getter;
-
-@Getter
-public class CustomException extends RuntimeException {
-    private final ErrorCode errorCode;
-    public CustomException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
-    }
-}
+open class CustomException(val errorCode: ErrorCode) : RuntimeException(errorCode.message)

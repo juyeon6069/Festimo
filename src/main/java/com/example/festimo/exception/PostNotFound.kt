@@ -1,7 +1,3 @@
-package com.example.festimo.exception;
+package com.example.festimo.exception
 
-public class PostNotFound extends CustomException {
-    public PostNotFound() {
-        super(ErrorCode.POST_NOT_FOUND);
-    }
-}
+class PostNotFound : CustomException(ErrorCode.POST_NOT_FOUND)
