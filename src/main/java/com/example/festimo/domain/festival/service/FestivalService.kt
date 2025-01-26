@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.modelmapper.ModelMapper
@@ -39,24 +38,18 @@ open class FestivalService (
     private val festivalRepository: FestivalRepository,
     private val redisTemplate: RedisTemplate<String, Object>
 ) {
+    private val modelMapper = ModelMapper()
 
     @Scheduled(cron = "0 0 0 * * ?")
-    fun scheduleRefreshEvents() {
-        refreshEvents()
-    }
+    open fun scheduleRefreshEvents() { refreshEvents() }
 
     @Transactional
     open fun refreshEvents() {
         try {
-            // 기존 데이터를 삭제하여 데이터 갱신
             festivalRepository!!.deleteAll()
-
             resetAutoIncrement()
 
-            // API 호출로 데이터 가져오기
             val events = getAllEvents()
-
-            // 가져온 데이터를 데이터베이스에 저장
             for (event in events) {
                 insert(event)
             }
@@ -66,16 +59,14 @@ open class FestivalService (
     }
 
     fun getAllEvents(): List<FestivalTO> {
-        val factory = DefaultUriBuilderFactory("https://apis.data.go.kr/B551011/KorService1")
-        factory.encodingMode = DefaultUriBuilderFactory.EncodingMode.NONE
-
-        val restTemplate = RestTemplate()
-        restTemplate.uriTemplateHandler = factory
+        val factory = DefaultUriBuilderFactory("https://apis.data.go.kr/B551011/KorService1").apply {
+            encodingMode = DefaultUriBuilderFactory.EncodingMode.NONE
+        }
+        val restTemplate = RestTemplate().apply { uriTemplateHandler = factory }
 
         val festivalList: MutableList<FestivalTO> = mutableListOf()
         var pageNo = 1
         val numOfRows = 100
-
         try {
             while (true) {
                 val url = factory.expand(
@@ -104,21 +95,18 @@ open class FestivalService (
                 val items = body["items"] as? Map<String, Any>
 
                 if (items == null || !items.containsKey("item")) break
-
                 val itemList = items["item"] as List<Map<String, Any>>
-
                 val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+
                 for (item in itemList) {
                     val festivalTO = FestivalTO()
                     festivalTO.title = item["title"] as? String ?: ""
                     festivalTO.address = (item["addr1"] as? String ?: "") + " " + (item["addr2"] as? String ?: "")
-
                     festivalTO.category = when (item["cat2"] as? String) {
                         "A0207" -> "축제"
                         "A0208" -> "행사"
                         else -> "기타"
                     }
-
                     festivalTO.startDate = item["eventstartdate"]?.let { LocalDate.parse(it as CharSequence, formatter) }
                     festivalTO.endDate = item["eventenddate"]?.let { LocalDate.parse(it as CharSequence, formatter) }
                     festivalTO.image = item["firstimage"] as? String
@@ -129,7 +117,6 @@ open class FestivalService (
 
                     festivalList.add(festivalTO)
                 }
-
                 val totalPages = ceil(totalCount.toDouble() / numOfRows).toInt()
                 if (pageNo >= totalPages) break
                 pageNo++
@@ -137,6 +124,7 @@ open class FestivalService (
         } catch (e: Exception) {
             System.err.println("Error: ${e.message}")
         }
+
         return festivalList
     }
 
@@ -145,10 +133,7 @@ open class FestivalService (
         val factory = DefaultUriBuilderFactory("https://apis.data.go.kr/B551011/KorService1").apply {
             encodingMode = DefaultUriBuilderFactory.EncodingMode.NONE
         }
-
-        val restTemplate = RestTemplate().apply {
-            uriTemplateHandler = factory
-        }
+        val restTemplate = RestTemplate().apply { uriTemplateHandler = factory }
 
         val details = mutableListOf<FestivalDetailsTO.Detail>()
         try {
@@ -198,21 +183,15 @@ open class FestivalService (
 
     @Transactional
     open fun insert(to: FestivalTO?) {
-        val modelMapper = ModelMapper()
         val festival = modelMapper.map(to, Festival::class.java)
-
         festivalRepository!!.save(festival)
     }
 
 
     open fun findPaginated(pageable: Pageable?): Page<FestivalTO> {
         val festivals = festivalRepository!!.findAll(pageable)
-        val modelMapper = ModelMapper()
         val page = festivals.map { festival: Festival? ->
-            modelMapper.map(
-                festival,
-                FestivalTO::class.java
-            )
+            modelMapper.map(festival, FestivalTO::class.java)
         }
         return page
     }
@@ -221,7 +200,6 @@ open class FestivalService (
         val cacheKey = "festivals:page:" + pageable.pageNumber + ":" + pageable.pageSize
         val totalElementsKey = "festivals:totalElements"
 
-        // 1. 캐시된 페이지 데이터 확인
         val cachedData = redisTemplate!!.opsForValue()[cacheKey]
         if (cachedData != null) {
             try {
@@ -229,38 +207,30 @@ open class FestivalService (
                 objectMapper.registerModule(JavaTimeModule())
                 objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
-                // List<FestivalTO>로 캐시 된 데이터 Deserialize
                 val cachedList: List<FestivalTO> = objectMapper.convertValue(
                     cachedData,
                     object : TypeReference<List<FestivalTO>>() {}  // List<FestivalTO> 타입으로 명확히 지정
                 )
 
-                // 2. 캐시된 totalElements 확인
                 val totalElementsStr = redisTemplate!!.opsForValue()[totalElementsKey] as String
                 var totalElements = if (totalElementsStr != null) {
                     try {
                         totalElementsStr.toLong()
                     } catch (e: NumberFormatException) {
-                        // 숫자 형식이 아니면 DB에서 조회
                         festivalRepository!!.count()
                     }
                 } else {
-                    // 캐시에 값이 없으면 DB에서 조회
                     festivalRepository!!.count()
                 }
-
                 return PageImpl(cachedList, pageable, totalElements)
             } catch (e: Exception) {
                 System.err.println("Failed to deserialize cached data: " + e.message)
                 redisTemplate!!.delete(cacheKey)
             }
         }
-
-        // 3. 캐시가 없는 경우 DB에서 조회
         val page = findPaginated(pageable)
         println("Retrieved page: " + page.content)
 
-        // 4. 페이지 데이터와 전체 개수를 캐시에 저장
         redisTemplate!!.opsForValue().set(cacheKey, page.content as Object, Duration.ofHours(24))
         redisTemplate!!.opsForValue().set(totalElementsKey, page.totalElements.toString() as Object, Duration.ofHours(24))
 
@@ -270,7 +240,6 @@ open class FestivalService (
     @Transactional(readOnly = true)
     open fun findById(id: Int): FestivalTO? {
         val festival = festivalRepository?.findById(id.toString())?.orElse(null) ?: return null
-        val modelMapper = ModelMapper()
         val to = modelMapper.map(festival, FestivalTO::class.java)
 
         val contentId: Int = festival.contentId
@@ -282,13 +251,8 @@ open class FestivalService (
 
     open fun search(keyword: String?, pageable: Pageable?): Page<FestivalTO> {
         val festivalPage = festivalRepository!!.findByTitleContainingIgnoreCase(keyword, pageable)
-
-        val modelMapper = ModelMapper()
         val page = festivalPage.map { festival: Festival? ->
-            modelMapper.map(
-                festival,
-                FestivalTO::class.java
-            )
+            modelMapper.map(festival, FestivalTO::class.java)
         }
         return page
     }
@@ -297,32 +261,21 @@ open class FestivalService (
         val currentDate = LocalDate.now()
         val safeYear = year ?: currentDate.year
         val safeMonth = month ?: currentDate.monthValue
-
         val yearMonth = YearMonth.of(safeYear, safeMonth)
         val firstDayOfMonth = yearMonth.atDay(1)
         val lastDayOfMonth = yearMonth.atEndOfMonth()
 
-        val modelMapper = ModelMapper()
         val festivals = festivalRepository!!.findByMonth(firstDayOfMonth, lastDayOfMonth, pageable)
         val page = festivals.map { festival: Festival? ->
-            modelMapper.map(
-                festival,
-                FestivalTO::class.java
-            )
+            modelMapper.map(festival, FestivalTO::class.java)
         }
-
         return page
     }
 
     open fun filterByRegion(region: String?, pageable: Pageable?): Page<FestivalTO> {
         val festivals = festivalRepository!!.findByAddressContainingIgnoreCase(region, pageable)
-
-        val modelMapper = ModelMapper()
         val page = festivals.map { festival: Festival? ->
-            modelMapper.map(
-                festival,
-                FestivalTO::class.java
-            )
+            modelMapper.map(festival, FestivalTO::class.java)
         }
         return page
     }
