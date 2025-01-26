@@ -1,14 +1,12 @@
-package com.example.festimo.global.config;
+package com.example.festimo.global.config
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.PropertySource
+import org.springframework.context.annotation.PropertySources
 
 @Configuration
-@PropertySources({
-        //@PropertySource("classpath:properties/env.properties") // env.properties 파일 소스 등록
-        @PropertySource("classpath:application.properties"),
-        @PropertySource("classpath:properties/env.properties")// env.properties 파일 소스 등록
-})
-public class PropertyConfig {
-}
+@PropertySources(
+    PropertySource("classpath:application.properties"),
+    PropertySource("classpath:properties/env.properties")
+)
+open class PropertyConfig
