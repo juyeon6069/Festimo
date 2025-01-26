@@ -1,11 +1,12 @@
-package com.example.festimo.domain.post.controller;
+package com.example.festimo.domain.post.controller
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.GetMapping
 
 @Controller
-public class PostPageController {
-    @GetMapping(value = {
+class PostPageController {
+    @GetMapping(
+        value = [
             "/",
             "/community/**",
             "/login",
@@ -13,8 +14,7 @@ public class PostPageController {
             "/post/**",
             "/post/edit/**",
             "/post/write"
-    })
-    public String forward() {
-        return "forward:/index.html";
-    }
+        ]
+    )
+    fun forward(): String = "forward:/index.html"
 }
