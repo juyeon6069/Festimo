@@ -14,6 +14,7 @@ import com.example.festimo.domain.user.domain.User
 import com.example.festimo.domain.user.repository.UserRepository
 import com.example.festimo.exception.CustomException
 import com.example.festimo.exception.ErrorCode.*
+
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -111,12 +112,23 @@ class ApplicationService(
             user.id
         )
 
-        return CompanionMember().apply {
-            id = companionMemberId
-            this.user = user
+        // Companion 조회
+        val companion = companionRepository.findById(application.companionId)
+            .orElseThrow { CustomException(COMPANION_NOT_FOUND) }
+
+        // 디버깅 출력
+        println("Creating CompanionMember: companionId=${companionMemberId.companionId}, userId=${companionMemberId.userId}, joinedDate=${LocalDateTime.now()}")
+
+        // CompanionMember 객체 생성 및 반환
+        return CompanionMember(
+            id = companionMemberId,
+            companion = companion,
+            user = user,
             joinedDate = LocalDateTime.now()
-        }
+        )
     }
+
+
 
     @Transactional
     fun rejectApplication(applicationId: Long, email: String) {
