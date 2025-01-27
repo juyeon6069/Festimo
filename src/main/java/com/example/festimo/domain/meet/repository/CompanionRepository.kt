@@ -1,8 +1,7 @@
 package com.example.festimo.domain.meet.repository
 
-import com.example.festimo.domain.meet.dto.CompanionResponse
 import com.example.festimo.domain.meet.entity.Companion
-import com.example.festimo.domain.meet.entity.MemberResponse
+import com.example.festimo.domain.meet.dto.MemberResponse
 import com.example.festimo.domain.post.entity.Post
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -22,7 +21,7 @@ interface CompanionRepository : JpaRepository<Companion, Long> {
     fun findCompanionIdByPostId(postId: Long): Optional<Long>
 
     @Query("""
-    SELECT new com.example.festimo.domain.meet.entity.MemberResponse(
+    SELECT new com.example.festimo.domain.meet.dto.MemberResponse(
         u.id,
         u.userName
     )

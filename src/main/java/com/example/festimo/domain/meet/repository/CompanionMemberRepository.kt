@@ -1,6 +1,6 @@
 package com.example.festimo.domain.meet.repository
 
-import com.example.festimo.domain.meet.entity.MemberResponse
+import com.example.festimo.domain.meet.dto.MemberResponse
 import com.example.festimo.domain.meet.entity.CompanionMember
 import com.example.festimo.domain.meet.entity.CompanionMemberId
 import org.springframework.data.jpa.repository.JpaRepository
@@ -22,7 +22,7 @@ interface CompanionMemberRepository : JpaRepository<CompanionMember, CompanionMe
     fun deleteByCompanion_CompanionId(companionId: Long)
 
     @Query("""
-    SELECT new com.example.festimo.domain.meet.entity.MemberResponse(
+    SELECT new com.example.festimo.domain.meet.dto.MemberResponse(
         cm.user.id,
         COALESCE(cm.user.userName, 'Unknown')
     )

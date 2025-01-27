@@ -116,9 +116,6 @@ class ApplicationService(
         val companion = companionRepository.findById(application.companionId)
             .orElseThrow { CustomException(COMPANION_NOT_FOUND) }
 
-        // 디버깅 출력
-        println("Creating CompanionMember: companionId=${companionMemberId.companionId}, userId=${companionMemberId.userId}, joinedDate=${LocalDateTime.now()}")
-
         // CompanionMember 객체 생성 및 반환
         return CompanionMember(
             id = companionMemberId,
@@ -127,7 +124,6 @@ class ApplicationService(
             joinedDate = LocalDateTime.now()
         )
     }
-
 
 
     @Transactional

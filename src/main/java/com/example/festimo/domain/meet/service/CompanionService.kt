@@ -78,38 +78,34 @@ class CompanionService(
 
     fun getCompanionAsMember(userId: Long): List<CompanionResponse> {
         val members = companionMemberRepository.findByUserId(userId)
-        println("Found members: $members")  // 전체 멤버 로깅
+
 
         return members
             .filter {
                 val hasCompanion = it.companion != null
                 val hasUser = it.user != null
-                println("Checking member: ${it.id}, hasCompanion=$hasCompanion, hasUser=$hasUser")
                 hasCompanion && hasUser
             }
             .onEach {
                 val companionId = it.companion?.companionId
                 val userId = it.user?.id
-                println("Processing member: ${it.id}, companionId=$companionId, userId=$userId")
             }
             .filter {
                 val companionLeaderId = it.companion?.leaderId
-                println("Filtering member: ${it.id}, companionLeaderId=$companionLeaderId, userId=$userId")
                 companionLeaderId != userId
             }
             .map { mapToCompanionResponse(it.companion!!) }
     }
 
     private fun mapToCompanionResponse(companion: Companion): CompanionResponse {
-        println("Mapping companion: $companion")
 
         // 리더 정보 로드
         val leader = companionRepository.findLeaderById(companion.leaderId!!)
-            .also { println("Found leader: $it") }
+
 
         // 멤버 정보 로드
         val members = companionMemberRepository.findMembersByCompanionId(companion.companionId)
-            .also { println("Found companion members: $it") }
+
 
         return CompanionResponse(
             companionId = companion.companionId,
