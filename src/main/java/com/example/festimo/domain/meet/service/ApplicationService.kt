@@ -75,7 +75,9 @@ class ApplicationService(
     @Transactional
     fun getAllApplications(companionId: Long, email: String): List<LeaderApplicationResponse> {
         val user = getUserFromEmail(email)
-        validateLeaderAccess(companionId, user.id)
+        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)
+
+        validateLeaderAccess(companionId, userId)
 
         val applications = applicationRepository.findByCompanionIdAndStatus(
             companionId,
@@ -85,7 +87,14 @@ class ApplicationService(
         val userIds = applications.map { it.userId }
 
         val userNicknames = userRepository.findNicknamesByUserIds(userIds)
-            .associate { it.userId to it.nickname }
+            ?.filterNotNull()  // null이 아닌 projection만 필터링
+            ?.mapNotNull { projection ->
+                projection.userId?.let { userId ->
+                    userId to (projection.nickname ?: "")
+                }
+            }
+            ?.toMap()
+            ?: emptyMap()
 
         return applications.map { app ->
             LeaderApplicationMapper.INSTANCE.toDto(app, userNicknames[app.userId])
@@ -95,8 +104,10 @@ class ApplicationService(
     @Transactional
     fun acceptApplication(applicationId: Long, email: String) {
         val leader = getUserFromEmail(email)
+        val leaderId = leader.id ?: throw CustomException(USER_NOT_FOUND)
+
         val application = validateAndGetApplication(applicationId)
-        validateLeaderAccess(application.companionId, leader.id)
+        validateLeaderAccess(application.companionId, leaderId)
 
         application.status = Applications.Status.ACCEPTED
         applicationRepository.save(application)
@@ -109,9 +120,11 @@ class ApplicationService(
     }
 
     private fun createCompanionMember(application: Applications, user: User): CompanionMember {
+        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)
+
         val companionMemberId = CompanionMemberId(
             application.companionId,
-            user.id
+            userId
         )
 
         // Companion 조회
@@ -131,8 +144,10 @@ class ApplicationService(
     @Transactional
     fun rejectApplication(applicationId: Long, email: String) {
         val leader = getUserFromEmail(email)
+        val leaderId = leader.id ?: throw CustomException(USER_NOT_FOUND)
+
         val application = validateAndGetApplication(applicationId)
-        validateLeaderAccess(application.companionId, leader.id)
+        validateLeaderAccess(application.companionId, leaderId)
 
         application.status = Applications.Status.REJECTED
         applicationRepository.save(application)
