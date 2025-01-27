@@ -4,6 +4,9 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.6'
     id 'org.jetbrains.kotlin.jvm' version '2.1.0'
     id 'org.jetbrains.kotlin.plugin.spring' version '2.1.0'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '2.1.0'
+    id 'org.jetbrains.kotlin.plugin.allopen' version '2.1.0'
+    id 'org.jetbrains.kotlin.kapt' version '2.1.0'
 }
 
 group = 'com.example'
@@ -38,6 +41,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.security:spring-security-test:6.4.2'
+    testImplementation "io.mockk:mockk:1.13.8"
     // 데이터베이스 및 ORM
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
@@ -53,23 +57,26 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     // HATEOAS
     implementation 'org.springframework.hateoas:spring-hateoas:2.4.1'
-    implementation 'org.springframework.hateoas:spring-hateoas:2.4.1'
     // 매핑 관련
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-    implementation 'org.modelmapper:modelmapper:3.2.2'
+    kapt 'org.mapstruct:mapstruct-processor:1.5.5.Final'
     // API 문서화
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     // Jackson 직렬화
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
     // 로깅
     implementation 'org.slf4j:slf4j-api'
     implementation 'ch.qos.logback:logback-classic'
     // Kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
-    implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
 
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.Embeddable")
+    annotation("jakarta.persistence.MappedSuperclass")
 }
 
 tasks.named('test') {

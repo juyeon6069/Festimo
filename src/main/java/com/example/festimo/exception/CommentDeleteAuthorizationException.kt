@@ -1,0 +1,3 @@
+package com.example.festimo.exception
+
+class CommentDeleteAuthorizationException : CustomException(ErrorCode.COMMENT_DELETE_AUTHORIZATION_EXCEPTION)
