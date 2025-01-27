@@ -19,12 +19,31 @@
 
     <div id="listTab" class="tab-content active">
         <h2 style="text-align: center; margin-bottom: 20px;">리더로 참여</h2>
-        <div id="leaderContent"></div>
+        <div id="leaderContent">
+            <!-- 예시 리더 동행원 데이터 -->
+            <div class="companion-card">
+                <div class="card-header">
+                    <div class="member-title">리더</div>
+                </div>
+                <div class="member-box">홍길동</div>
+                <button class="btn write-review-btn" data-id="1" data-name="홍길동">리더 리뷰 작성</button> <!-- 리뷰 작성 버튼 추가 -->
+            </div>
+        </div>
     </div>
+
 
     <div id="mineTab" class="tab-content">
         <h2 style="text-align: center; margin-bottom: 20px;">동행원으로 참여</h2>
-        <div id="memberContent"></div>
+        <div id="memberContent">
+            <!-- 예시 동행원 데이터 -->
+            <div class="companion-card">
+                <div class="card-header">
+                    <div class="member-title">동행원</div>
+                </div>
+                <div class="member-box">김철수</div>
+                <button class="btn write-review-btn" data-id="2" data-name="김철수">리뷰 작성</button> <!-- 리뷰 작성 버튼 추가 -->
+            </div>
+        </div>
     </div>
 
     <div id="applicationModal" class="modal">
@@ -34,6 +53,27 @@
             <div id="application-table" class="application-list"></div>
         </div>
     </div>
+
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>리뷰 작성</h2>
+            <form id="reviewForm">
+                <!--                <label for="reviewContent">내용:</label>-->
+                <textarea id="reviewContent" name="content" rows="4" placeholder="리뷰 내용을 입력하세요"></textarea>
+                <label for="reviewRating">평점:</label>
+                <select id="reviewRating" name="rating">
+                    <option value="5">★★★★★</option>
+                    <option value="4">★★★★☆</option>
+                    <option value="3">★★★☆☆</option>
+                    <option value="2">★★☆☆☆</option>
+                    <option value="1">★☆☆☆☆</option>
+                </select>
+                <button type="submit" class="btn submit-review-btn">리뷰 작성</button>
+            </form>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>
