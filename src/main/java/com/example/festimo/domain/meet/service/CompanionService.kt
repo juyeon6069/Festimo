@@ -25,20 +25,23 @@ class CompanionService(
 ) {
     private fun getUserFromEmail(email: String): User =
         userRepository.findByEmail(email)
-            .orElseThrow { CustomException(USER_NOT_FOUND) }
+            ?.orElseThrow { CustomException(USER_NOT_FOUND) }
+            ?: throw CustomException(USER_NOT_FOUND)
 
     @Transactional
     fun createCompanion(postId: Long, email: String) {
         val user = getUserFromEmail(email)
+        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)
+
         val post = postRepository.findById(postId)
             .orElseThrow { CustomException(POST_NOT_FOUND) }
 
         companionRepository.findByPost(post)
             .ifPresent { throw CustomException(COMPANION_ALREADY_EXISTS) }
 
-        val companion = Companion(leaderId = user.id, companionDate = LocalDateTime.now(), post = post)
-        companionRepository.save(companion)
-        addLeaderToCompanionMember(companion.companionId, user.id)
+        val companion = Companion(leaderId = userId, companionDate = LocalDateTime.now(), post = post)
+        val savedCompanion = companionRepository.save(companion)
+        addLeaderToCompanionMember(savedCompanion.companionId, userId)
     }
 
     private fun addLeaderToCompanionMember(companionId: Long, userId: Long) {
@@ -62,7 +65,9 @@ class CompanionService(
     @Transactional
     fun deleteCompanion(companionId: Long, email: String) {
         val user = getUserFromEmail(email)
-        val companionMemberId = CompanionMemberId(companionId, user.id)
+        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)
+
+        val companionMemberId = CompanionMemberId(companionId, userId)
 
         if (!companionMemberRepository.existsById(companionMemberId)) {
             throw CustomException(COMPANION_NOT_FOUND)
