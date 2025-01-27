@@ -27,8 +27,12 @@ class AdminService(private val userRepository: UserRepository) {
     fun getAllUsers(page: Int, size: Int): Page<AdminDTO> {
         val pageable: Pageable = PageRequest.of(page, size)
         return userRepository.findAll(pageable)
-            .map { user: User -> AdminMapper.INSTANCE.toDto(user) }
+            .map { user: User? ->
+                user?.let { AdminMapper.INSTANCE.toDto(it) }
+                    ?: throw IllegalArgumentException("User not found")
+            }
     }
+
 
     /**
      * 회원 정보를 수정합니다.
