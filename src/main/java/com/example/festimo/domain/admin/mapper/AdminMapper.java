@@ -1,12 +1,13 @@
 package com.example.festimo.domain.admin.mapper;
 
-import com.example.festimo.domain.admin.dto.AdminUpdateUserDTO;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 import com.example.festimo.domain.admin.dto.AdminDTO;
+import com.example.festimo.domain.admin.dto.AdminUpdateUserDTO;
 import com.example.festimo.domain.user.domain.User;
 
 @Mapper

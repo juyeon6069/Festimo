@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 동행</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="../css/companion.css">
     <script defer type="text/javascript" src="../js/header.js"></script>
     <script type="module" src="../js/companion.js"></script>
@@ -18,19 +18,20 @@
     </div>
 
     <div id="listTab" class="tab-content active">
-        <h2 style="text-align: center; margin-bottom: 20px;">리더로 참여</h2>
         <div id="leaderContent"></div>
     </div>
 
     <div id="mineTab" class="tab-content">
-        <h2 style="text-align: center; margin-bottom: 20px;">동행원으로 참여</h2>
         <div id="memberContent"></div>
     </div>
 
+    <!-- 모달 부분만 수정 -->
     <div id="applicationModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2>신청 리스트</h2>
+            <div class="modal-header">
+                <div class="status-badge">신청</div>
+                <span class="close-btn material-icons">close</span>
+            </div>
             <div id="application-table" class="application-list"></div>
         </div>
     </div>
