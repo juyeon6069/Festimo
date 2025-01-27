@@ -29,7 +29,8 @@ class ApplicationService(
 
     private fun getUserFromEmail(email: String): User =
         userRepository.findByEmail(email)
-            .orElseThrow { CustomException(USER_NOT_FOUND) }
+            ?.orElseThrow { CustomException(USER_NOT_FOUND) }
+            ?: throw CustomException(USER_NOT_FOUND)
 
     private fun validateLeaderAccess(companionId: Long, userId: Long) {
         val leaderId = companionRepository.findLeaderIdByCompanyId(companionId)
@@ -54,6 +55,7 @@ class ApplicationService(
     @Transactional
     fun createApplication(email: String, postId: Long): ApplicationResponse {
         val user = getUserFromEmail(email)
+        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)  // null일 경우 예외 처리
 
         val companionId = companionRepository.findCompanionIdByPostId(postId)
             .orElseThrow { CustomException(POST_NOT_FOUND) }
@@ -62,11 +64,11 @@ class ApplicationService(
             throw CustomException(COMPANY_NOT_FOUND)
         }
 
-        if (applicationRepository.existsByUserIdAndCompanionId(user.id, companionId)) {
+        if (applicationRepository.existsByUserIdAndCompanionId(userId, companionId)) {
             throw CustomException(DUPLICATE_APPLICATION)
         }
 
-        val application = Applications(user.id, companionId)
+        val application = Applications(userId, companionId)  // non-null Long 전달
         return ApplicationMapper.INSTANCE.toDto(applicationRepository.save(application))
     }
 

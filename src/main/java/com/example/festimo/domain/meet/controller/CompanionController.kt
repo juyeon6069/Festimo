@@ -29,8 +29,10 @@ class CompanionController(
 
     private fun getUserFromEmail(email: String): User {
         return userRepository.findByEmail(email)
-            .orElseThrow { CustomException(USER_NOT_FOUND) }
+            ?.orElseThrow { CustomException(USER_NOT_FOUND) }
+            ?: throw CustomException(USER_NOT_FOUND)
     }
+
 
     @PostMapping("/companions")
     @Operation(summary = "동행 생성")
@@ -62,9 +64,10 @@ class CompanionController(
         val email = getEmailFromHeader(authorizationHeader)
         val user = getUserFromEmail(email)
 
-        // 리더로 참여한 동행과 멤버로 참여한 동행 조회
-        val asLeader = companionService.getCompanionAsLeader(user.id)
-        val asMember = companionService.getCompanionAsMember(user.id)
+        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)
+
+        val asLeader = companionService.getCompanionAsLeader(userId)
+        val asMember = companionService.getCompanionAsMember(userId)
 
         return ResponseEntity.ok(
             mapOf(
