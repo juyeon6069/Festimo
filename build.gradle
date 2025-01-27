@@ -64,10 +64,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2'
     // 로깅
     implementation 'org.slf4j:slf4j-api'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-
     implementation 'ch.qos.logback:logback-classic'
-    //코틀린
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
