@@ -111,7 +111,7 @@ class PostServiceImpl(
     @Transactional
     override fun updatePost(postId: Long, request: UpdatePostRequest): PostDetailResponse {
         val user = SecurityContextHolder.getContext().authentication?.name?.let { email ->
-            userRepository.findByEmail(email).orElseThrow { UnauthorizedException() }
+            userRepository.findByEmail(email) ?: throw UnauthorizedException()
         } ?: throw UnauthorizedException()
 
         val post = postRepository.findById(postId).orElseThrow { PostNotFound() }
@@ -196,7 +196,7 @@ class PostServiceImpl(
 
     override fun getComments(postId: Long): List<CommentResponse> {
         val user = SecurityContextHolder.getContext().authentication?.name?.let { email ->
-            userRepository.findByEmail(email).orElseThrow { UnauthorizedException() }
+            userRepository.findByEmail(email) ?: throw UnauthorizedException()
         } ?: throw UnauthorizedException()
 
         val post = postRepository.findById(postId).orElseThrow { PostNotFound() }
@@ -293,6 +293,6 @@ class PostServiceImpl(
             throw UnauthorizedException()
         }
         return userRepository.findByEmail(authentication.name)
-            .orElseThrow { UnauthorizedException() }
+            ?: throw UnauthorizedException()
     }
 }
