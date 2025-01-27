@@ -1,15 +1,13 @@
-package com.example.festimo.domain.user.dto;
+package com.example.festimo.domain.user.dto
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank
+import lombok.Getter
+import lombok.Setter
 
 @Getter
 @Setter
-public class ChangePasswordDTO {
-    @NotBlank
-    private String oldPassword;
+data class ChangePasswordDTO (
+    val oldPassword: @NotBlank String = "",
 
-    @NotBlank
-    private String newPassword;
-}
+    val newPassword: @NotBlank String = ""
+)

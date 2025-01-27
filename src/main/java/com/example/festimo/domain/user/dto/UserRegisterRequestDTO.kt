@@ -1,15 +1,14 @@
-package com.example.festimo.domain.user.dto;
+package com.example.festimo.domain.user.dto
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Getter
+import lombok.Setter
 
 @Getter
 @Setter
-public class UserRegisterRequestDTO {
-    private String userName;
-    private String nickname;
-    private String email;
-    private String password;
-    private String gender;
-
-}
+data class UserRegisterRequestDTO (
+    val userName: String? = null,
+    val nickname: String? = null,
+    val email: String? = null,
+    val password: String = "",
+    val gender: String? = null
+)

@@ -1,22 +1,17 @@
-package com.example.festimo.domain.user.dto;
+package com.example.festimo.domain.user.dto
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponseDTO {
-    private Long id;
-    private String userName;
-    private String nickname;
-    private String email;
-    private String role;
-    private String gender;
-    // rating
-}
+data class UserResponseDTO (
+    var id: Long? = null,
+    var userName: String? = null,
+    var nickname: String? = null,
+    var email: String? = null,
+    var role: String? = null,
+    var gender: String? = null // rating
+)

@@ -1,15 +1,19 @@
-package com.example.festimo.domain.user.dto;
+package com.example.festimo.domain.user.dto
 
-import lombok.*;
+import lombok.*
 
 @Getter
 @Setter
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class TokenResponseDTO {
-    private String accessToken;
-    private String refreshToken;
-    private String nickname;
-    private String email;
-}
+data class TokenResponseDTO (
+    var accessToken: String? = null,
+
+    var refreshToken: String? = null,
+
+    var nickname: String? = null,
+
+    var email: String? = null
+
+)
