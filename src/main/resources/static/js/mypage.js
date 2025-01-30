@@ -8,7 +8,7 @@ async function fetchUserData() {
         });
 
         // 사용자 정보 업데이트
-        document.getElementById('welcome-message').textContent = `Welcome, ${data.userName}`;
+        document.getElementById('welcome-message').textContent = `${data.userName}`;
         document.getElementById('nickname').textContent = data.nickname;
         document.getElementById('email').textContent = data.email;
     } catch (error) {
@@ -21,7 +21,6 @@ async function fetchUserData() {
         }
     }
 }
-
 // 내가 쓴 리뷰 가져오기
 async function fetchWrittenReviews(page = 0, size = 5) {
     try {
@@ -39,9 +38,13 @@ async function fetchWrittenReviews(page = 0, size = 5) {
             const reviewElement = document.createElement('div');
             reviewElement.classList.add('review-item');
             reviewElement.innerHTML = `
-                <p><strong>평점:</strong> ${review.rating}</p>
-                <p><strong>내용:</strong> ${review.content}</p>
-                <p><strong>작성일:</strong> ${new Date(review.createdAt).toLocaleDateString()}</p>
+                <div class="review-header">
+                    <span class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</span>
+                    <span class="review-date">${new Date(review.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div class="review-content">
+                    <p>${review.content}</p>
+                </div>
             `;
             reviewsContainer.appendChild(reviewElement);
         });
@@ -51,6 +54,7 @@ async function fetchWrittenReviews(page = 0, size = 5) {
         console.error('Error fetching written reviews:', error);
     }
 }
+
 
 // 내가 받은 리뷰 가져오기
 async function fetchReceivedReviews(page = 0, size = 5) {
@@ -69,9 +73,13 @@ async function fetchReceivedReviews(page = 0, size = 5) {
             const reviewElement = document.createElement('div');
             reviewElement.classList.add('review-item');
             reviewElement.innerHTML = `
-                <p><strong>평점:</strong> ${review.rating}</p>
-                <p><strong>내용:</strong> ${review.content}</p>
-                <p><strong>작성일:</strong> ${new Date(review.createdAt).toLocaleDateString()}</p>
+                <div class="review-header">
+                    <span class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</span>
+                    <span class="review-date">${new Date(review.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div class="review-content">
+                    <p>${review.content}</p>
+                </div>
             `;
             reviewsContainer.appendChild(reviewElement);
         });
@@ -81,6 +89,7 @@ async function fetchReceivedReviews(page = 0, size = 5) {
         console.error('Error fetching received reviews:', error);
     }
 }
+
 
 // 페이지네이션 버튼 렌더링
 function renderPagination(totalPages, currentPage, fetchFunction, containerId) {
@@ -144,4 +153,3 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchWrittenReviews(); // 내가 쓴 리뷰 가져오기
     initializeEventListeners(); // 이벤트 리스너 등록
 });
-

@@ -1,4 +1,4 @@
-import { apiRequest } from './apiClient.js';
+import {apiRequest} from './apiClient.js';
 
 // 전역 함수로 등록
 window.loadApplications = loadApplications;
@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchCompanions();
 });
 
-function renderCompanionItem(name, isLeader) {
+function renderCompanionItem(name, isLeader, userId) {
+    console.log("renderCompanionItem : ", {name, isLeader, userId});
     return `
         <div class="companion-item">
             <div class="user-icon">
@@ -31,9 +32,13 @@ function renderCompanionItem(name, isLeader) {
                 <span class="companion-name">${name}</span>
                 ${isLeader ? '<span class="leader-badge">리더</span>' : ''}
             </div>
+            <button class="btn write-review-btn" data-id="${userId}" data-name="${name}">
+                리뷰 작성
+            </button>
         </div>
     `;
 }
+
 
 async function fetchCompanions() {
     try {
@@ -42,17 +47,20 @@ async function fetchCompanions() {
 
         const data = await apiRequest('/api/meet/companions/mine');
         renderCompanions(data);
+        console.log("Fetched Data:", data);
         return data;
     } catch (error) {
         console.error('Error:', error);
         const errorMessage = '<div class="error">데이터를 불러오는데 실패했습니다.</div>';
         document.getElementById('leaderContent').innerHTML = errorMessage;
         document.getElementById('memberContent').innerHTML = errorMessage;
-        return { asLeader: [], asMember: [] };
+        return {asLeader: [], asMember: []};
     }
 }
 
 function renderCompanions(data) {
+    console.log("Leaders Data:", data.asLeader); // 리더 데이터 확인
+    console.log("Members Data:", data.asMember);
     // 리더로 참여한 동행 렌더링
     const leaderContent = document.getElementById('leaderContent');
     leaderContent.innerHTML = data.asLeader.map(companion => `
@@ -62,7 +70,7 @@ function renderCompanions(data) {
             </div>
             <div class="companions-list">
                 ${companion.members.map(member =>
-        renderCompanionItem(member.userName, member.userId === companion.leaderId)
+        renderCompanionItem(member.userName, member.userId === companion.leaderId, member.userId)
     ).join('')}
             </div>
         </div>
@@ -77,7 +85,7 @@ function renderCompanions(data) {
             </div>
             <div class="companions-list">
                 ${companion.members.map(member =>
-        renderCompanionItem(member.userName, member.userId === companion.leaderId)
+        renderCompanionItem(member.userName, member.userId === companion.leaderId, member.userId)
     ).join('')}
             </div>
         </div>
@@ -131,6 +139,8 @@ async function loadApplications(companionId) {
     }
 }
 
+
+
 // 모달 닫기 버튼 이벤트
 document.querySelector('.close-btn').addEventListener('click', () => {
     document.getElementById('applicationModal').style.display = 'none';
@@ -138,7 +148,7 @@ document.querySelector('.close-btn').addEventListener('click', () => {
 
 async function acceptApplication(applicationId, companionId) {
     try {
-        await apiRequest(`/api/meet/${applicationId}/accept`, { method: "POST" });
+        await apiRequest(`/api/meet/${applicationId}/accept`, {method: "POST"});
         alert("신청을 수락했습니다.");
         loadApplications(companionId);
         fetchCompanions();
@@ -150,7 +160,7 @@ async function acceptApplication(applicationId, companionId) {
 
 async function rejectApplication(applicationId, companionId) {
     try {
-        await apiRequest(`/api/meet/${applicationId}/reject`, { method: "PATCH" });
+        await apiRequest(`/api/meet/${applicationId}/reject`, {method: "PATCH"});
         alert("신청을 거절했습니다.");
         loadApplications(companionId);
         fetchCompanions();
@@ -163,7 +173,7 @@ async function rejectApplication(applicationId, companionId) {
 async function handleWithdraw(companionId) {
     if (confirm('정말로 이 동행에서 탈퇴하시겠습니까?')) {
         try {
-            await apiRequest(`/api/meet/${companionId}`, { method: "DELETE" });
+            await apiRequest(`/api/meet/${companionId}`, {method: "DELETE"});
             alert("동행에서 성공적으로 탈퇴했습니다.");
             fetchCompanions();
         } catch (error) {
@@ -172,3 +182,88 @@ async function handleWithdraw(companionId) {
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 리뷰 작성 버튼 클릭 이벤트 등록
+    document.body.addEventListener('click', (event) => {
+        if (event.target.classList.contains('write-review-btn')) {
+            const userId = event.target.dataset.id;
+            const userName = event.target.dataset.name;
+            const companionId = event.target.dataset['companion-id']; // 추가된 companionId 데이터 속성
+
+            openReviewModal(userId, userName, companionId); // companionId 전달
+        }
+    });
+
+    // 모달 닫기 이벤트
+    document.getElementById('reviewModal').querySelector('.close-btn').addEventListener('click', () => {
+        const reviewModal = document.getElementById('reviewModal');
+        reviewModal.style.display = 'none'; // 리뷰 작성 모달 닫기
+    });
+
+
+    // 리뷰 작성 폼 제출 이벤트
+    document.getElementById('reviewForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const reviewContent = document.getElementById('reviewContent').value;
+        const reviewRating = document.getElementById('reviewRating').value;
+        const revieweeId = document.getElementById('reviewModal').dataset.revieweeId;
+        const companionId = document.getElementById('reviewModal').dataset.companionId; // companionId 사용
+
+        if (!reviewContent || !reviewRating) {
+            alert('내용과 평점을 입력해주세요.');
+            return;
+        }
+
+        try {
+            await submitReview({
+                revieweeId: parseInt(revieweeId),
+                content: reviewContent,
+                rating: parseInt(reviewRating),
+            });
+            alert('리뷰가 작성되었습니다.');
+            closeReviewModal();
+        } catch (error) {
+            console.error('리뷰 작성 오류:', error);
+            alert('리뷰 작성에 실패했습니다.');
+        }
+    });
+});
+
+function openReviewModal(revieweeId, userName, companionId) {
+    console.log("Review Modal Opened with:", {revieweeId, userName, companionId}); // 디버깅용 로그 추가
+    const reviewModal = document.getElementById('reviewModal');
+    reviewModal.dataset.revieweeId = revieweeId;
+    reviewModal.dataset.companionId = companionId;
+    reviewModal.querySelector('h2').textContent = `${userName}님에게 리뷰 작성`;
+    reviewModal.style.display = 'block';
+}
+
+
+function closeReviewModal() {
+    const reviewModal = document.getElementById('reviewModal');
+    reviewModal.style.display = 'none';
+    document.getElementById('reviewContent').value = '';
+    document.getElementById('reviewRating').value = '5';
+}
+
+async function submitReview(reviewData) {
+    try {
+        console.log('Submitting review:', reviewData); // revieweeId 확인
+        const response = await apiRequest('/api/reviews', {
+            method: 'POST',
+            body: JSON.stringify({
+                revieweeId: reviewData.revieweeId,
+                content: reviewData.content,
+                rating: reviewData.rating,
+            }),
+        });
+
+        return response; // API 호출 결과 반환
+    } catch (error) {
+        console.error('리뷰 작성 오류:', error);
+        throw new Error('리뷰 작성 실패');
+    }
+}
+

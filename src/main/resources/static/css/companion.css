@@ -27,19 +27,20 @@ body {
     cursor: pointer;
     flex: 1;
     text-align: center;
+    transition: color 0.2s, border-bottom 0.2s;
 }
 
 .tab.active {
-    border-bottom: 2px solid #6b46c1;
+    border-bottom: 2px solid #6b46c1; /* 활성 탭 하단 강조 */
     color: #6b46c1;
 }
 
 .tab-content {
-    display: none;
+    display: none; /* 기본적으로 숨김 처리 */
 }
 
 .tab-content.active {
-    display: block;
+    display: block; /* 활성화된 탭 내용만 표시 */
 }
 
 /* 카드 스타일 */
@@ -107,6 +108,7 @@ body {
     font-weight: 500;
 }
 
+/* 버튼 및 동작 스타일 */
 .card-actions {
     display: flex;
     justify-content: flex-end;
@@ -121,10 +123,16 @@ body {
     background: #718096;
     color: white;
     margin-left: 8px;
+    transition: background-color 0.2s;
 }
-/* 모달 관련 스타일 수정 */
+
+.btn:hover {
+    background: #4a5568;
+}
+
+/* 모달 스타일 */
 .modal {
-    display: none;
+    display: none; /* 기본적으로 숨김 처리 */
     position: fixed;
     top: 0;
     left: 0;
@@ -143,6 +151,7 @@ body {
     max-width: 400px;
     border-radius: 12px;
     border: 1px solid #e5e7eb;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
 .modal-header {
@@ -171,7 +180,7 @@ body {
     color: #4b5563;
 }
 
-/* 신청 리스트 스타일 수정 */
+/* 신청 리스트 스타일 */
 .application-list {
     display: flex;
     flex-direction: column;
@@ -201,14 +210,11 @@ body {
     gap: 8px;
 }
 
+/* 버튼 상태별 스타일 */
 .accept-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 8px;
     background-color: #f0fdf4;
     color: #16a34a;
+    padding: 8px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -216,13 +222,9 @@ body {
 }
 
 .reject-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 8px;
     background-color: #fef2f2;
     color: #dc2626;
+    padding: 8px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -236,3 +238,50 @@ body {
 .reject-button:hover {
     background-color: #fee2e2;
 }
+
+/* 폼 및 텍스트 영역 */
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    resize: none; /* 크기 조정 막기 */
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.submit-review-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.submit-review-btn:hover {
+    background-color: #218838;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+

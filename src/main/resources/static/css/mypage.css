@@ -1,3 +1,4 @@
+
 body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     margin: 0;
@@ -130,6 +131,68 @@ footer {
 
 .page-btn:hover {
     background-color: #e0e0e0;
+}
+
+.edit-profile-btn {
+    /* 버튼 크기 조정 및 기존 스타일 */
+    background-color: #505199; /* 버튼 배경색: 보라색 */
+    color: white; /* 텍스트 색상: 흰색 */
+    padding: 0.5rem 1.2rem; /* 버튼 크기 줄임 */
+    border: none; /* 테두리 제거 */
+    border-radius: 20px; /* 둥근 모서리 */
+    font-size: 0.9rem; /* 텍스트 크기 조금 줄임 */
+    font-weight: bold; /* 텍스트 굵기 */
+    cursor: pointer; /* 마우스 포인터 변경 */
+    transition: all 0.3s ease; /* 호버 애니메이션 */
+}
+
+.edit-profile-btn:hover {
+    /* 호버 스타일 */
+    background-color: #6c63ff; /* 더 밝은 보라색 */
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+    transform: translateY(-1px); /* 버튼이 약간 떠오르는 효과 */
+}
+
+
+/* 리뷰 카드 */
+.review-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background-color: #ffffff; /* 카드 배경 */
+    padding: 1.5rem; /* 내부 여백 */
+    border-radius: 10px; /* 둥근 모서리 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 그림자 */
+    margin-bottom: 1rem; /* 항목 간 간격 */
+    border-left: 5px solid #505199; /* 좌측 강조 테두리 */
+}
+
+/* 리뷰 헤더: 별점과 날짜 */
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* 별점 */
+.review-rating {
+    color: #f1c40f; /* 별점 색상: 노란색 */
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+/* 작성 날짜 */
+.review-date {
+    color: #999; /* 연한 텍스트 색상 */
+}
+
+/* 리뷰 내용 */
+.review-content {
+    font-size: 1rem;
+    color: #333;
+    line-height: 1.6; /* 줄 간격 */
 }
 
 

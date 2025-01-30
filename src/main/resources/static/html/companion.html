@@ -17,15 +17,17 @@
         <div class="tab" data-tab="mine">내 동행(동행원)</div>
     </div>
 
+    <!-- 리더 탭 -->
     <div id="listTab" class="tab-content active">
         <div id="leaderContent"></div>
     </div>
 
+    <!-- 동행원 탭 -->
     <div id="mineTab" class="tab-content">
         <div id="memberContent"></div>
     </div>
 
-    <!-- 모달 부분만 수정 -->
+    <!-- 신청 리스트 모달 -->
     <div id="applicationModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -35,6 +37,28 @@
             <div id="application-table" class="application-list"></div>
         </div>
     </div>
+
+    <!-- 리뷰 작성 모달 -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span> <!-- 닫기 버튼 -->
+            <h2>리뷰 작성</h2> <!-- 동적으로 변경 가능 -->
+            <form id="reviewForm">
+                <label for="reviewContent"></label>
+                <textarea id="reviewContent" name="content" rows="4" placeholder="리뷰 내용을 입력하세요"></textarea>
+                <label for="reviewRating">평점:</label>
+                <select id="reviewRating" name="rating">
+                    <option value="5">★★★★★</option>
+                    <option value="4">★★★★☆</option>
+                    <option value="3">★★★☆☆</option>
+                    <option value="2">★★☆☆☆</option>
+                    <option value="1">★☆☆☆☆</option>
+                </select>
+                <button type="submit" class="btn submit-review-btn">리뷰 작성</button>
+            </form>
+        </div>
+    </div>
 </div>
+
 </body>
 </html>
