@@ -60,6 +60,7 @@ dependencies {
     // 매핑 관련
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     kapt 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    implementation 'org.modelmapper:modelmapper:3.2.2'
     // API 문서화
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
     // Jackson 직렬화
