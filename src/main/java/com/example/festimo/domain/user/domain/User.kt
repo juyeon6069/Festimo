@@ -17,31 +17,31 @@ data class User (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    var id: Long? = null,
+    var id: Long = 0,
 
     @Column(name = "user_name", nullable = false, length = 50)
-    var userName: String? = null,
+    var userName: String = "",
 
     @Column(name = "nickname", nullable = false, unique = true, length = 255)
-    var nickname: String? = null,
+    var nickname: String = "",
 
     @Column
     @Builder.Default
     var avatar: String = "default-avatar.png",
 
     @Column(name = "email", nullable = false, unique = true, length = 255)
-    var email: String? = null,
+    var email: String = "",
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
-    var gender: Gender? = null,
+    var gender: Gender = Gender.M,
 
     @Column(name = "password", nullable = true, length = 255)
-    var password: String? = null, // 소셜 로그인 사용자는 비밀번호가 없을 수 있음
+    var password: String = "", // 소셜 로그인 사용자는 비밀번호가 없을 수 있음
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
-    var role: Role? = null,
+    var role: Role = Role.USER,
 
     @Column(name = "refresh_token", length = 512)
     var refreshToken: String? = null,
@@ -63,7 +63,7 @@ data class User (
 
     @Column(name = "rating_avg", nullable = false)
     @Builder.Default
-    var ratingAvg: Float? = 0.0f
+    var ratingAvg: Float = 0.0f
 ){
 
     // Enum Classes
