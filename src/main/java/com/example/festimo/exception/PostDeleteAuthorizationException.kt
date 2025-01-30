@@ -1,0 +1,3 @@
+package com.example.festimo.exception
+
+class PostDeleteAuthorizationException : CustomException(ErrorCode.POST_DELETE_AUTHORIZATION_EXCEPTION)

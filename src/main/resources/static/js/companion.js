@@ -21,6 +21,25 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchCompanions();
 });
 
+function renderCompanionItem(name, isLeader, userId) {
+    console.log("renderCompanionItem : ", {name, isLeader, userId});
+    return `
+        <div class="companion-item">
+            <div class="user-icon">
+                <span class="material-icons">person</span>
+            </div>
+            <div class="companion-info">
+                <span class="companion-name">${name}</span>
+                ${isLeader ? '<span class="leader-badge">리더</span>' : ''}
+            </div>
+            <button class="btn write-review-btn" data-id="${userId}" data-name="${name}">
+                리뷰 작성
+            </button>
+        </div>
+    `;
+}
+
+
 async function fetchCompanions() {
     try {
         document.getElementById('leaderContent').innerHTML = '<div class="loading">로딩 중...</div>';
@@ -28,7 +47,7 @@ async function fetchCompanions() {
 
         const data = await apiRequest('/api/meet/companions/mine');
         renderCompanions(data);
-        console.log(data);
+        console.log("Fetched Data:", data);
         return data;
     } catch (error) {
         console.error('Error:', error);
@@ -40,40 +59,35 @@ async function fetchCompanions() {
 }
 
 function renderCompanions(data) {
+    console.log("Leaders Data:", data.asLeader); // 리더 데이터 확인
+    console.log("Members Data:", data.asMember);
     // 리더로 참여한 동행 렌더링
-    console.log('Rendering leader data:', data.asLeader);
     const leaderContent = document.getElementById('leaderContent');
     leaderContent.innerHTML = data.asLeader.map(companion => `
         <div class="companion-card">
-            <div class="card-header">
-                <div class="member-title">리더</div>
+            <div class="card-actions">
                 <button class="btn" onclick="loadApplications(${companion.companionId})">신청 리스트 확인</button>
             </div>
-            <div class="member-box">${companion.leaderName}</div>
-            ${companion.members.map((member, index) => `
-                <div class="member-title">동행원${index + 1}</div>
-                <div class="member-box">${member.userName}</div>
-                <button class="btn write-review-btn" 
-                    data-id="${member.userId}" 
-                    data-name="${member.userName}" 
-                    data-companion-id="${companion.companionId}">
-                    리뷰 작성
-                </button>
-            `).join('')}
+            <div class="companions-list">
+                ${companion.members.map(member =>
+        renderCompanionItem(member.userName, member.userId === companion.leaderId, member.userId)
+    ).join('')}
+            </div>
         </div>
     `).join('') || '<div style="text-align: center; padding: 20px;">리더로 참여한 동행이 없습니다.</div>';
 
     // 멤버로 참여한 동행 렌더링
-    console.log('Rendering Mem data:', data.asMember);
-
     const memberContent = document.getElementById('memberContent');
     memberContent.innerHTML = data.asMember.map(companion => `
         <div class="companion-card">
-            <div class="card-header">
-                <div class="member-title">리더</div>
+            <div class="card-actions">
                 <button class="btn" onclick="handleWithdraw(${companion.companionId})">탈퇴</button>
             </div>
-            <div class="member-box">${companion.leaderName}</div>
+            <div class="companions-list">
+                ${companion.members.map(member =>
+        renderCompanionItem(member.userName, member.userId === companion.leaderId, member.userId)
+    ).join('')}
+            </div>
         </div>
     `).join('') || '<div style="text-align: center; padding: 20px;">동행원으로 참여한 동행이 없습니다.</div>';
 }
@@ -87,7 +101,7 @@ async function loadApplications(companionId) {
         applicationTable.innerHTML = "";
 
         if (!data || !Array.isArray(data) || data.length === 0) {
-            applicationTable.innerHTML = '<div class="error">신청된 내역이 없습니다.</div>';
+            applicationTable.innerHTML = '<div class="application-row">신청된 내역이 없습니다.</div>';
             return;
         }
 
@@ -96,12 +110,24 @@ async function loadApplications(companionId) {
             row.classList.add("application-row");
             row.innerHTML = `
                 <div class="application-info">
-                    닉네임: ${application.nickname}<br>
-                    신청일: ${new Date(application.appliedDate).toLocaleDateString()}
+                    <div>
+                        <span>닉네임</span>
+                        <div class="font-medium mt-1">${application.nickname}</div>
+                    </div>
+                    <div>
+                        <span>신청일</span>
+                        <div class="font-medium mt-1">${new Date(application.appliedDate).toLocaleDateString()}</div>
+                    </div>
                 </div>
                 <div class="application-actions">
-                    <button onclick="acceptApplication(${application.applicationId}, ${companionId})" class="accept-button">수락</button>
-                    <button onclick="rejectApplication(${application.applicationId}, ${companionId})" class="reject-button">거절</button>
+                    <button onclick="acceptApplication(${application.applicationId}, ${companionId})" class="accept-button">
+                        <span class="material-icons">check</span>
+                        수락
+                    </button>
+                    <button onclick="rejectApplication(${application.applicationId}, ${companionId})" class="reject-button">
+                        <span class="material-icons">close</span>
+                        거절
+                    </button>
                 </div>
             `;
             applicationTable.appendChild(row);
@@ -109,9 +135,11 @@ async function loadApplications(companionId) {
     } catch (error) {
         console.error("Error loading applications:", error);
         document.getElementById("application-table").innerHTML =
-            '<div class="error">데이터를 불러오는데 실패했습니다.</div>';
+            '<div class="application-row">데이터를 불러오는데 실패했습니다.</div>';
     }
 }
+
+
 
 // 모달 닫기 버튼 이벤트
 document.querySelector('.close-btn').addEventListener('click', () => {
