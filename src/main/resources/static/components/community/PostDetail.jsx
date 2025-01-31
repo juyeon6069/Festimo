@@ -251,7 +251,6 @@ const PostDetail = () => {
                 },
                 body: JSON.stringify({
                     comment: commentInput,
-                    nickname: userInfo.nickname,
                 }),
             });
 

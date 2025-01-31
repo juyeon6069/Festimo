@@ -12,5 +12,5 @@ data class UpdatePostRequest(
     val category: PostCategory? = null,
 
     @field:NotBlank(message = "비밀번호는 필수 항목입니다.")
-    val password: String
+    val password: String = ""
 )
