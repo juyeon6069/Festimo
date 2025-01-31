@@ -108,6 +108,21 @@ async function getCurrentUserId() {
     }
 }
 
+/**
+ * 현재 로그인 상태 확인
+ * @returns {boolean} - 로그인 상태 여부
+ */
+function isLoggedIn() {
+    if (!accessToken) {
+        console.log("isLoggedIn: No token found. Returning false.");
+        return false;  // ✅ 명확하게 `false` 반환
+    }
+
+    const expired = isTokenExpired(accessToken);
+    console.log(`isLoggedIn: Token valid? ${!expired}`);
+    return !expired; // ✅ 만료 여부 체크 후 `true` 또는 `false` 반환
+}
+
 // 모듈 내보내기
-export { apiRequest, refreshAccessToken, isTokenExpired, getCurrentUserId };
+export { apiRequest, refreshAccessToken, isTokenExpired, getCurrentUserId, isLoggedIn };
 
