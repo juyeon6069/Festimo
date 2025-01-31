@@ -1,12 +1,15 @@
 package com.example.festimo.domain.festival.domain
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import jakarta.persistence.*
 import java.time.LocalDate
 
 @Entity
+@Table(
+    name = "festival",
+    indexes = [
+        Index(name = "idx_festival_date", columnList = "start_date, end_date")
+    ]
+)
 data class Festival(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
