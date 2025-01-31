@@ -400,7 +400,12 @@ const PostDetail = () => {
                             className="w-10 h-10 rounded-full border border-gray-200"
                         />
                         <div>
-                            <p className="font-medium text-lg leading-tight">{post.nickname}</p>
+                            <p
+                                className="font-medium text-lg leading-tight cursor-pointer hover:text-[#4D4B88]"
+                                onClick={() => navigate(`/profile/${post.userId}`)} // TODO: ProfileLink
+                            >
+                                {post.nickname}
+                            </p>
                             <p className="text-gray-500 text-sm">{formatDate(post.createdAt)}</p>
                         </div>
                     </div>
@@ -544,12 +549,18 @@ const PostDetail = () => {
                                 <div className="flex-1">
                                     <div className="flex justify-between items-center">
                                         <div>
-                                            <p className="font-medium">{comment.nickname}</p>
+                                            <p
+                                                className="font-medium cursor-pointer hover:text-[#4D4B88]"
+                                                onClick={() => navigate(`/profile/${comment.userId}`)} // TODO: ProfileLink
+                                            >
+                                                {comment.nickname}
+                                            </p>
                                             <p className="text-gray-500 text-sm">{formatDate(comment.createdAt)}</p>
                                         </div>
                                         {/* 수정/삭제 버튼 */}
                                         {comment.owner && (
-                                            <div className="relative" ref={el => commentMenuRefs.current[comment.sequence] = el}>
+                                            <div className="relative"
+                                                 ref={el => commentMenuRefs.current[comment.sequence] = el}>
                                                 <button
                                                     onClick={() => setCommentMenuOpen(prev => ({
                                                         ...prev,
