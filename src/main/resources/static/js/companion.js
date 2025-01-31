@@ -1,4 +1,4 @@
-import { apiRequest, getCurrentUserId } from './apiClient.js';
+import { apiRequest, getCurrentUserId, isLoggedIn } from './apiClient.js';
 
 // 전역 함수로 등록
 window.loadApplications = loadApplications;
@@ -7,6 +7,16 @@ window.acceptApplication = acceptApplication;
 window.rejectApplication = rejectApplication;
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("isLoggedIn: ", isLoggedIn()); // 현재 로그인 상태 확인
+
+    // 페이지 로드 시 로그인 여부 확인
+    if (!isLoggedIn()) {
+        alert('로그인이 필요합니다.');
+        console.log("Redirecting to login page...");
+        window.location.href = '/html/login.html'; // 로그인 페이지로 이동
+        return; // ✅ 추가: 이후 코드 실행 중단
+    }
+
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
