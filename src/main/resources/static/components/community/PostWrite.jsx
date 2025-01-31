@@ -181,7 +181,7 @@ const PostWrite = () => {
                         <option value="COMPANION">동행자 모집</option>
                         <option value="REVIEW">후기</option>
                         <option value="QNA">Q&A</option>
-                        <option value="OTHER">기타</option>
+                        <option value="ETC">기타</option>
                     </select>
                 </div>
                 <div className="mb-4">
