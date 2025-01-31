@@ -29,7 +29,6 @@ class ApplicationService(
 
     private fun getUserFromEmail(email: String): User =
         userRepository.findByEmail(email)
-            ?.orElseThrow { CustomException(USER_NOT_FOUND) }
             ?: throw CustomException(USER_NOT_FOUND)
 
     private fun validateLeaderAccess(companionId: Long, userId: Long) {

@@ -7,6 +7,7 @@ import com.example.festimo.global.utils.jwt.JwtAuthenticationFilter;
 import com.example.festimo.global.utils.jwt.JwtTokenProvider;
 import com.example.festimo.global.utils.jwt.OAuth2LoginSuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,13 +23,20 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
+
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomOAuth2UserService customOAuth2UserService, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler, CustomOAuth2FailureHandler customOAuth2FailureHandler) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+        this.customOAuth2FailureHandler = customOAuth2FailureHandler;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

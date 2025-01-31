@@ -29,8 +29,8 @@ class CompanionController(
 
     private fun getUserFromEmail(email: String): User {
         return userRepository.findByEmail(email)
-            ?.orElseThrow { CustomException(USER_NOT_FOUND) }
-            ?: throw CustomException(USER_NOT_FOUND)
+            ?: throw  CustomException(USER_NOT_FOUND)
+
     }
 
 

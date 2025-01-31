@@ -6,6 +6,8 @@ import com.example.festimo.domain.review.dto.ReviewUpdateDTO
 import com.example.festimo.domain.review.service.ReviewService
 import com.example.festimo.domain.user.repository.UserRepository
 import com.example.festimo.domain.user.service.UserService
+import com.example.festimo.exception.CustomException
+import com.example.festimo.exception.ErrorCode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -61,8 +63,8 @@ class ReviewController(
         println("Mapped DTO: $requestDTO")
 
         val email = authentication.name
-        val reviewerId = userRepository.findUserIdByEmail(email)
-            .orElseThrow { IllegalArgumentException("User not found with email: $email") }
+        val reviewerId = userService.getUserIdByEmail(email)
+            ?: throw CustomException(ErrorCode.USER_NOT_FOUND)
 
         val updatedRequestDTO = requestDTO.copy(reviewerId = reviewerId)
         val message = reviewService.createReview(updatedRequestDTO)
