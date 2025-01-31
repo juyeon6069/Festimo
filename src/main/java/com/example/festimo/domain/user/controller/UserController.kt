@@ -109,7 +109,7 @@ class UserController (
 
     @Operation(summary = "회원 정보 조회")
     @GetMapping("/user/{email}")
-    fun getUser(@PathVariable email: String?): ResponseEntity<UserResponseDTO> {
+    fun getUser(@PathVariable email: String): ResponseEntity<UserResponseDTO> {
         return ResponseEntity.ok(userService.getUserByEmail(email))
     }
 

@@ -6,9 +6,9 @@ import lombok.Setter
 @Getter
 @Setter
 data class UserRegisterRequestDTO (
-    val userName: String? = null,
-    val nickname: String? = null,
-    val email: String? = null,
+    val userName: String = "",
+    val nickname: String = "",
+    val email: String = "",
     val password: String = "",
-    val gender: String? = null
+    val gender: String = ""
 )

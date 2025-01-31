@@ -79,8 +79,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private User findOrCreateUser(String email, String name, String gender, User.Provider provider, String providerId) {
-        User user = userRepository.findByProviderId(providerId) // 수정됨
-                .orElse(null); // Optional 처리
+        User user = userRepository.findByProviderId(providerId); // 수정됨
         if (user == null) {
             return createNewUser(email, name, gender, provider, providerId);
         } else {

@@ -14,15 +14,15 @@ import org.springframework.stereotype.Repository
 import java.util.*
 @Repository
 interface UserRepository : JpaRepository<User, Long> {
-    fun findByEmail(email: String?): Optional<User?>?
+    fun findByEmail(email: String?): User?
 
     fun existsByEmail(email: String?): Boolean
 
     fun existsByNickname(nickname: String?): Boolean
 
-    fun findByRefreshToken(refreshToken: String?): Optional<User?>?
+    fun findByRefreshToken(refreshToken: String?): User?
 
-    fun findByProviderId(providerId: String?): Optional<User?>?
+    fun findByProviderId(providerId: String?): User?
 
     @Modifying
     @Transactional

@@ -6,6 +6,6 @@ import lombok.Setter
 @Getter
 @Setter
 data class UserLoginRequestDTO (
-    val email: String? = "",
-    val password: String? = ""
+    val email: String = "",
+    val password: String = ""
 )
