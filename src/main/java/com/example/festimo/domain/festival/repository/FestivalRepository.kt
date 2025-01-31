@@ -11,7 +11,6 @@ import java.time.LocalDate
 
 @Repository
 interface FestivalRepository : JpaRepository<Festival, String> {
-
     fun findByTitleContainingIgnoreCase(keyword: String?, pageable: Pageable?): Page<Festival>
 
     @Query(value = """SELECT * FROM festival WHERE address LIKE CONCAT(:region, '%')""", nativeQuery = true)
