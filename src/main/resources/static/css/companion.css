@@ -161,6 +161,14 @@ body {
     margin-bottom: 24px;
 }
 
+.modal-title {
+    margin: 0 auto; /* 제목을 가운데 정렬 */
+    font-size: 18px; /* 폰트 크기 설정 */
+    font-weight: bold;
+    text-align: center; /* 텍스트 가운데 정렬 */
+    flex-grow: 1; /* 제목이 남은 공간을 채우도록 설정 */
+}
+
 .status-badge {
     background-color: #f3e8ff;
     color: #9333ea;
@@ -171,9 +179,11 @@ body {
 }
 
 .close-btn {
-    color: #9ca3af;
+    font-size: 20px;
     cursor: pointer;
+    color: #9ca3af;
     transition: color 0.2s;
+    margin-left: auto; /* 닫기 버튼이 오른쪽 끝으로 이동 */
 }
 
 .close-btn:hover {
@@ -259,18 +269,20 @@ select {
     font-size: 16px;
 }
 
+/* 버튼 */
 .submit-review-btn {
-    background-color: #28a745;
+    background: #333;
     color: white;
-    padding: 10px 20px;
+    width: 100%;
+    padding: 10px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    font-size: 16px;
 }
 
 .submit-review-btn:hover {
-    background-color: #218838;
+    background: #555;
 }
 
 /* 애니메이션 */

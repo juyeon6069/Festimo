@@ -174,4 +174,14 @@ class UserController (
         val refreshToken = request["refreshToken"]
         return ResponseEntity.ok(refreshToken?.let { userService.refreshTokens(it) })
     }
+
+    @Operation(summary = "현재 로그인한 사용자의 ID 반환")
+    @GetMapping("/user/me")
+    fun getCurrentUser(authentication: Authentication): ResponseEntity<Map<String, Long>> {
+        val email = authentication.name // Spring Security에서 인증된 사용자 이메일 가져오기
+        val userId = userService.getUserIdByEmail(email) // 이메일을 기반으로 사용자 ID 조회
+        return ResponseEntity.ok(mapOf("id" to userId))
+    }
+
 }
+

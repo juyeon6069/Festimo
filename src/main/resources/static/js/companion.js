@@ -1,4 +1,4 @@
-import {apiRequest} from './apiClient.js';
+import { apiRequest, getCurrentUserId } from './apiClient.js';
 
 // 전역 함수로 등록
 window.loadApplications = loadApplications;
@@ -21,8 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchCompanions();
 });
 
-function renderCompanionItem(name, isLeader, userId) {
-    console.log("renderCompanionItem : ", {name, isLeader, userId});
+function renderCompanionItem(name, isLeader, userId, currentUserId) {
+    console.log("renderCompanionItem : ", { name, isLeader, userId, currentUserId });
+
+    const showReviewButton = userId !== currentUserId; // 본인이면 버튼 숨기기
+
     return `
         <div class="companion-item">
             <div class="user-icon">
@@ -32,9 +35,11 @@ function renderCompanionItem(name, isLeader, userId) {
                 <span class="companion-name">${name}</span>
                 ${isLeader ? '<span class="leader-badge">리더</span>' : ''}
             </div>
-            <button class="btn write-review-btn" data-id="${userId}" data-name="${name}">
-                리뷰 작성
-            </button>
+            ${showReviewButton ? `
+                <button class="btn write-review-btn" data-id="${userId}" data-name="${name}">
+                    리뷰 작성
+                </button>
+            ` : ''}
         </div>
     `;
 }
@@ -45,9 +50,13 @@ async function fetchCompanions() {
         document.getElementById('leaderContent').innerHTML = '<div class="loading">로딩 중...</div>';
         document.getElementById('memberContent').innerHTML = '<div class="loading">로딩 중...</div>';
 
-        const data = await apiRequest('/api/meet/companions/mine');
-        renderCompanions(data);
-        console.log("Fetched Data:", data);
+        const [data, currentUserId] = await Promise.all([
+            apiRequest('/api/meet/companions/mine'),
+            getCurrentUserId()
+        ]);
+
+        renderCompanions(data, currentUserId);
+        console.log("Fetched Data:", data, "Current User ID:", currentUserId);
         return data;
     } catch (error) {
         console.error('Error:', error);
@@ -58,9 +67,10 @@ async function fetchCompanions() {
     }
 }
 
-function renderCompanions(data) {
-    console.log("Leaders Data:", data.asLeader); // 리더 데이터 확인
+function renderCompanions(data, currentUserId) {
+    console.log("Leaders Data:", data.asLeader);
     console.log("Members Data:", data.asMember);
+
     // 리더로 참여한 동행 렌더링
     const leaderContent = document.getElementById('leaderContent');
     leaderContent.innerHTML = data.asLeader.map(companion => `
@@ -70,7 +80,7 @@ function renderCompanions(data) {
             </div>
             <div class="companions-list">
                 ${companion.members.map(member =>
-        renderCompanionItem(member.userName, member.userId === companion.leaderId, member.userId)
+        renderCompanionItem(member.userName, member.userId === companion.leaderId, member.userId, currentUserId)
     ).join('')}
             </div>
         </div>
@@ -85,7 +95,7 @@ function renderCompanions(data) {
             </div>
             <div class="companions-list">
                 ${companion.members.map(member =>
-        renderCompanionItem(member.userName, member.userId === companion.leaderId, member.userId)
+        renderCompanionItem(member.userName, member.userId === companion.leaderId, member.userId, currentUserId)
     ).join('')}
             </div>
         </div>
@@ -236,7 +246,6 @@ function openReviewModal(revieweeId, userName, companionId) {
     const reviewModal = document.getElementById('reviewModal');
     reviewModal.dataset.revieweeId = revieweeId;
     reviewModal.dataset.companionId = companionId;
-    reviewModal.querySelector('h2').textContent = `${userName}님에게 리뷰 작성`;
     reviewModal.style.display = 'block';
 }
 
