@@ -41,8 +41,10 @@
     <!-- 리뷰 작성 모달 -->
     <div id="reviewModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span> <!-- 닫기 버튼 -->
-            <h2>리뷰 작성</h2> <!-- 동적으로 변경 가능 -->
+            <div class="modal-header"> <!-- 헤더 영역 추가 -->
+                <h2 class="modal-title">리뷰 쓰기</h2> <!-- 제목에 클래스 추가 -->
+                <span class="close-btn">&times;</span> <!-- 닫기 버튼 -->
+            </div>
             <form id="reviewForm">
                 <label for="reviewContent"></label>
                 <textarea id="reviewContent" name="content" rows="4" placeholder="리뷰 내용을 입력하세요"></textarea>
@@ -54,7 +56,7 @@
                     <option value="2">★★☆☆☆</option>
                     <option value="1">★☆☆☆☆</option>
                 </select>
-                <button type="submit" class="btn submit-review-btn">리뷰 작성</button>
+                <button type="submit" class="btn submit-review-btn">작성하기</button>
             </form>
         </div>
     </div>
