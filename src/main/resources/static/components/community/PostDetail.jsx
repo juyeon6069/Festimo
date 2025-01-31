@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
+import { MoreVertical } from 'lucide-react';
 
 const CATEGORY_STYLES = {
     COMPANION: 'bg-blue-100 text-blue-600',
@@ -35,12 +36,14 @@ const PostDetail = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [post, setPost] = useState(null);
-    const [likes, setLikes] = useState(0);
-    const [liked, setLiked] = useState(false);
     const isInitialMount = useRef(true);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletePassword, setDeletePassword] = useState('');
     const [deleteError, setDeleteError] = useState('');
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [commentMenuOpen, setCommentMenuOpen] = useState({});
+    const menuRef = useRef(null);
+    const commentMenuRefs = useRef({});
 
     const getCategoryStyle = (category) => {
         return CATEGORY_STYLES[category] || CATEGORY_STYLES.DEFAULT;
@@ -95,8 +98,6 @@ const PostDetail = () => {
                 ...postData,
                 comments: commentsData
             });
-            setLikes(postData.likes);
-            setLiked(postData.liked);
             setIsLoading(false);
         } catch (error) {
             console.error('Error details:', error);
@@ -109,12 +110,44 @@ const PostDetail = () => {
         checkAuthAndFetchPost();
     }, [checkAuthAndFetchPost]);
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // 게시글 메뉴
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setMenuOpen(false);
+            }
+
+            // 댓글 메뉴
+            Object.keys(commentMenuRefs.current).forEach(key => {
+                if (commentMenuRefs.current[key] && !commentMenuRefs.current[key].contains(event.target)) {
+                    setCommentMenuOpen(prev => ({
+                        ...prev,
+                        [key]: false
+                    }));
+                }
+            });
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const handleGoToList = () => {
         navigate('/community');
     };
 
     const toggleLike = async () => {
         try {
+            // 즉시 UI 업데이트
+            setPost((prev) => ({
+                ...prev,
+                likes: prev.liked ? prev.likes - 1 : prev.likes + 1,
+                liked: !prev.liked,
+            }));
+
+            // API 호출
             const token = localStorage.getItem('accessToken');
             const response = await fetch(`/api/companions/${postId}/like`, {
                 method: 'POST',
@@ -125,15 +158,14 @@ const PostDetail = () => {
             });
 
             if (!response.ok) {
+                // API 호출 실패 시, UI를 원래대로
+                setPost((prev) => ({
+                    ...prev,
+                    likes: prev.liked ? prev.likes + 1 : prev.likes - 1,
+                    liked: !prev.liked,
+                }));
                 throw new Error('좋아요 처리에 실패했습니다.');
             }
-
-            // UI 업데이트 문제로 클라이언트에서 liked 상태 강제 변경
-            setPost((prev) => ({
-                ...prev,
-                likes: prev.liked ? prev.likes - 1 : prev.likes + 1,
-                liked: !prev.liked,
-            }));
         } catch (error) {
             console.error('Error:', error);
             alert('좋아요 처리 중 오류가 발생했습니다.');
@@ -145,6 +177,7 @@ const PostDetail = () => {
     };
 
     const handleDelete = () => {
+        setMenuOpen(false);
         if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
             setShowDeleteModal(true);
         }
@@ -375,63 +408,31 @@ const PostDetail = () => {
                     {/* 작성자/일반 회원에 따른 버튼 표시 */}
                     <div className="flex gap-2">
                         {post.owner ? (
-                            <>
+                            <div className="relative" ref={menuRef}>
                                 <button
-                                    onClick={handleEdit}
-                                    className="px-3 py-1.5 bg-[#4D4B88] text-white rounded-lg hover:opacity-90 text-sm"
+                                    onClick={() => setMenuOpen(!menuOpen)}
+                                    className="p-2 rounded-full hover:bg-gray-200"
                                 >
-                                    수정
+                                    <MoreVertical size={18}/>
                                 </button>
-                                <button
-                                    onClick={handleDelete}
-                                    className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:opacity-90 text-sm"
-                                >
-                                    삭제
-                                </button>
-                                {/* 삭제 모달 */}
-                                {showDeleteModal && (
+                                {menuOpen && (
                                     <div
-                                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                                        <div className="bg-white p-6 rounded-lg shadow-xl w-96">
-                                            <h3 className="text-lg font-semibold mb-4">비밀번호 확인</h3>
-                                            {deleteError && (
-                                                <div className="mb-4 text-red-500 text-sm">
-                                                    {deleteError}
-                                                </div>
-                                            )}
-                                            <input
-                                                type="password"
-                                                value={deletePassword}
-                                                onChange={(e) => {
-                                                    setDeletePassword(e.target.value);
-                                                    setDeleteError('');
-                                                }}
-                                                className="w-full p-2 border rounded-lg mb-4"
-                                                placeholder="비밀번호를 입력하세요"
-                                                autoFocus
-                                            />
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setShowDeleteModal(false);
-                                                        setDeletePassword('');
-                                                        setDeleteError('');
-                                                    }}
-                                                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                                                >
-                                                    취소
-                                                </button>
-                                                <button
-                                                    onClick={handleDeleteConfirm}
-                                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                                                >
-                                                    삭제
-                                                </button>
-                                            </div>
-                                        </div>
+                                        className="absolute right-0 mt-2 w-24 bg-white border border-gray-300 rounded-lg shadow-lg">
+                                        <button
+                                            onClick={handleEdit}
+                                            className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            수정
+                                        </button>
+                                        <button
+                                            onClick={handleDelete}
+                                            className="block w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+                                        >
+                                            삭제
+                                        </button>
                                     </div>
                                 )}
-                            </>
+                            </div>
                         ) : (
                             post.category === 'COMPANION' && (
                                 <button
@@ -548,19 +549,32 @@ const PostDetail = () => {
                                         </div>
                                         {/* 수정/삭제 버튼 */}
                                         {comment.owner && (
-                                            <div className="flex gap-2">
+                                            <div className="relative" ref={el => commentMenuRefs.current[comment.sequence] = el}>
                                                 <button
-                                                    onClick={() => handleEditComment(comment.sequence)}
-                                                    className="px-3 py-1 bg-[#4D4B88] text-white rounded-lg hover:opacity-90 text-sm"
+                                                    onClick={() => setCommentMenuOpen(prev => ({
+                                                        ...prev,
+                                                        [comment.sequence]: !prev[comment.sequence]
+                                                    }))}
+                                                    className="p-2 rounded-full hover:bg-gray-200"
                                                 >
-                                                    수정
+                                                    <MoreVertical size={18} />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleDeleteComment(comment.sequence)}
-                                                    className="px-3 py-1 bg-red-500 text-white rounded-lg hover:opacity-90 text-sm"
-                                                >
-                                                    삭제
-                                                </button>
+                                                {commentMenuOpen[comment.sequence] && (
+                                                    <div className="absolute right-0 mt-2 w-24 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                                                        <button
+                                                            onClick={() => handleEditComment(comment.sequence)}
+                                                            className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                        >
+                                                            수정
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteComment(comment.sequence)}
+                                                            className="block w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+                                                        >
+                                                            삭제
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -603,6 +617,49 @@ const PostDetail = () => {
                     목록으로
                 </button>
             </div>
+
+            {/* 삭제 모달 */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-96">
+                        <h3 className="text-lg font-semibold mb-4">비밀번호 확인</h3>
+                        {deleteError && (
+                            <div className="mb-4 text-red-500 text-sm">
+                                {deleteError}
+                            </div>
+                        )}
+                        <input
+                            type="password"
+                            value={deletePassword}
+                            onChange={(e) => {
+                                setDeletePassword(e.target.value);
+                                setDeleteError('');
+                            }}
+                            className="w-full p-2 border rounded-lg mb-4"
+                            placeholder="비밀번호를 입력하세요"
+                            autoFocus
+                        />
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setDeletePassword('');
+                                    setDeleteError('');
+                                }}
+                                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleDeleteConfirm}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            >
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
