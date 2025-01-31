@@ -13,15 +13,11 @@ import java.time.LocalDate
 interface FestivalRepository : JpaRepository<Festival, String> {
 
     fun findByTitleContainingIgnoreCase(keyword: String?, pageable: Pageable?): Page<Festival>
-    fun findByAddressContainingIgnoreCase(region: String?, pageable: Pageable?): Page<Festival>
 
-    @Query(
-        value = """
-        SELECT * FROM festival 
-        WHERE start_date BETWEEN :startDate AND :endDate
-        """,
-        nativeQuery = true
-    )
+    @Query(value = """SELECT * FROM festival WHERE address LIKE CONCAT(:region, '%')""", nativeQuery = true)
+    fun findByRegion(@Param("region") region: String?, pageable: Pageable?): Page<Festival>
+
+    @Query(value = """SELECT * FROM festival WHERE start_date BETWEEN :startDate AND :endDate""", nativeQuery = true)
     fun findByMonth(
         @Param("startDate") startDate: LocalDate?,
         @Param("endDate") endDate: LocalDate?,

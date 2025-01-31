@@ -273,7 +273,7 @@ open class FestivalService (
     }
 
     open fun filterByRegion(region: String?, pageable: Pageable?): Page<FestivalTO> {
-        val festivals = festivalRepository!!.findByAddressContainingIgnoreCase(region, pageable)
+        val festivals = festivalRepository!!.findByRegion(region, pageable)
         val page = festivals.map { festival: Festival? ->
             modelMapper.map(festival, FestivalTO::class.java)
         }
