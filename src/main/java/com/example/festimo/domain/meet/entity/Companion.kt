@@ -2,6 +2,7 @@ package com.example.festimo.domain.meet.entity
 
 import com.example.festimo.domain.post.entity.Post
 import com.example.festimo.domain.post.entity.PostCategory
+import com.example.festimo.exception.InvalidTitleException
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -16,18 +17,47 @@ class Companion(
     val leaderId: Long,
 
     @Column(nullable = false)
-    val companionDate: LocalDateTime = LocalDateTime.now(),
+    val companionDate: LocalDateTime,
 
-    //@OneToOne
-    //@JoinColumn(name = "post_id", nullable = false)
-    @ManyToOne(cascade = [CascadeType.ALL])
-    @JoinColumn(name = "post_id", nullable = false)
-    val post: Post
+    // Post와 1:1 관계 설정
+    @OneToOne
+    @JoinColumn(name = "post_id", nullable = false, unique = true)
+    val post: Post,
+
+    @Column(nullable = false, length = 255)
+    var title: String = "동행",
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var status: CompanionStatus = CompanionStatus.ONGOING
 ) {
-    constructor() : this(0, 0, LocalDateTime.now(), Post(
-        title = "",           // 필수
-        nickname = "",        // 필수
-        category = PostCategory.ETC,  // enum 값 중 하나를 기본값으로
-        content = ""          // 필수
-    ))
+    // 기본 생성자
+    constructor() : this(
+        companionId = 0,
+        leaderId = 0,
+        companionDate = LocalDateTime.now(),
+        post = Post(
+            title = "",
+            nickname = "",
+            category = PostCategory.ETC,
+            content = ""
+        )
+    )
+
+    // 상태를 변경하는 메서드
+    fun changeTitle(title: String) {
+        if (title.isBlank()) {
+            throw InvalidTitleException()
+        }
+        this.title = title
+    }
+
+    fun changeStatus(newStatus: CompanionStatus) {
+        this.status = newStatus
+    }
+}
+
+enum class CompanionStatus {
+    ONGOING,
+    COMPLETED
 }

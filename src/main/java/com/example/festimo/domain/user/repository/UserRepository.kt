@@ -1,5 +1,6 @@
 package com.example.festimo.domain.user.repository
 
+import com.example.festimo.domain.meet.dto.ApplicateUsersProjection
 import com.example.festimo.domain.user.domain.User
 import com.example.festimo.domain.user.dto.UserNicknameProjection
 import io.micrometer.common.lang.NonNull
@@ -35,4 +36,10 @@ interface UserRepository : JpaRepository<User, Long> {
 
     @Query("SELECT u.id AS userId, u.nickname AS nickname FROM User u WHERE u.id IN :userIds")
     fun findNicknamesByUserIds(userIds: List<Long?>?): List<UserNicknameProjection?>?
+
+    @Query("""
+    SELECT u.id as userId, u.nickname as nickname, u.gender as gender, u.ratingAvg as ratingAvg 
+    FROM User u 
+    WHERE u.id IN :userIds""")
+    fun findApplicateInfoByUserIds(@Param("userIds") userIds: List<Long>): List<ApplicateUsersProjection>
 }

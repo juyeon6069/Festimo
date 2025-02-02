@@ -1,6 +1,7 @@
 package com.example.festimo.domain.meet.dto
 
 data class ApplicationRequest(
+
     val companionId: Long
 )
 {
