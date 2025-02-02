@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.WebDataBinder
@@ -29,9 +30,9 @@ class PostController(private val postService: PostService) {
     }
 
     @Operation(summary = "게시글 등록")
-    @PostMapping
+    @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun createPost(
-        @RequestBody request: PostRequest,
+        @ModelAttribute request: PostRequest,
         authentication: Authentication
     ): ResponseEntity<Void> {
         postService.createPost(request, authentication)
@@ -56,10 +57,11 @@ class PostController(private val postService: PostService) {
         ResponseEntity.ok(postService.getPostById(postId, incrementView, authentication))
 
     @Operation(summary = "게시글 수정")
-    @PutMapping("/{postId}")
+    @PutMapping("/{postId}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun updatePost(
         @PathVariable postId: Long,
-        @RequestBody request: UpdatePostRequest
+        @ModelAttribute request: UpdatePostRequest,
+        authentication: Authentication
     ): ResponseEntity<PostDetailResponse> =
         ResponseEntity.ok(postService.updatePost(postId, request))
 
