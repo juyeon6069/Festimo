@@ -109,6 +109,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers("/api/reviews/**").permitAll()
+                        .requestMatchers("/api/follow/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/oauth2/token").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 권한 기반 접근 제어 관리자만 사용 가능
