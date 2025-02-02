@@ -3,6 +3,7 @@ package com.example.festimo.domain.festival.service
 import com.example.festimo.domain.festival.domain.Festival
 import com.example.festimo.domain.festival.dto.FestivalDetailsTO
 import com.example.festimo.domain.festival.dto.FestivalTO
+import com.example.festimo.domain.festival.elasticsearch.FestivalDocument
 import com.example.festimo.domain.festival.repository.FestivalRepository
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.type.TypeReference
@@ -16,11 +17,17 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations
+
+import org.springframework.data.elasticsearch.core.query.Criteria
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery
+import org.springframework.data.elasticsearch.core.query.Query
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.event.TransactionalEventListener
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.DefaultUriBuilderFactory
 import java.net.URI
@@ -36,7 +43,8 @@ open class FestivalService (
     @Value("\${INFO_FESTIVAL_API_KEY}") private val INFO_FESTIVAL_API_KEY: String,
     @PersistenceContext private val entityManager: EntityManager,
     private val festivalRepository: FestivalRepository,
-    private val redisTemplate: RedisTemplate<String, Object>
+    private val redisTemplate: RedisTemplate<String, Object>,
+    private var elasticsearchOperations: ElasticsearchOperations,
 ) {
     private val modelMapper = ModelMapper()
 
@@ -53,6 +61,7 @@ open class FestivalService (
             for (event in events) {
                 insert(event)
             }
+            syncFestivalData()
         } catch (e: Exception) {
             println("refreshEvents 도중 에러 발생: " + e.message)
         }
@@ -250,12 +259,40 @@ open class FestivalService (
     }
 
     open fun search(keyword: String?, pageable: Pageable?): Page<FestivalTO> {
-        val festivalPage = festivalRepository!!.findByTitleContainingIgnoreCase(keyword, pageable)
-        val page = festivalPage.map { festival: Festival? ->
-            modelMapper.map(festival, FestivalTO::class.java)
+        if (keyword.isNullOrBlank()) {
+            return Page.empty()
         }
-        return page
+
+        val criteria = Criteria("title").contains(keyword).boost(2.0f)
+            .or(Criteria("description").matches(keyword).boost(1.0f))
+            .or(Criteria("location").matches(keyword).boost(1.0f))
+
+        val query: Query = CriteriaQuery(criteria).setPageable(pageable)
+        val searchHits = elasticsearchOperations.search(query, FestivalDocument::class.java)
+
+        val festivalTOList = searchHits.map { hit ->
+            modelMapper.map(hit.content, FestivalTO::class.java)
+        }.toList()
+
+        return PageImpl(festivalTOList, pageable, searchHits.totalHits.toLong())
+
     }
+
+    @Transactional
+    open fun syncFestivalData() {
+        // MariaDB에서 모든 Festival 데이터 조회
+        val festivals = festivalRepository.findAll()
+
+        if (festivals.isNotEmpty()) {
+            // Festival 데이터를 FestivalDocument로 변환 후 Elasticsearch에 저장
+            val festivalDocuments = festivals.map { festival ->
+                modelMapper.map(festival, FestivalDocument::class.java)
+            }
+
+            elasticsearchOperations.save(festivalDocuments)
+        }
+    }
+
 
     open fun filterByMonth(year: Int?, month: Int?, pageable: Pageable?): Page<FestivalTO> {
         val currentDate = LocalDate.now()
@@ -273,7 +310,7 @@ open class FestivalService (
     }
 
     open fun filterByRegion(region: String?, pageable: Pageable?): Page<FestivalTO> {
-        val festivals = festivalRepository!!.findByAddressContainingIgnoreCase(region, pageable)
+        val festivals = festivalRepository!!.findByRegion(region, pageable)
         val page = festivals.map { festival: Festival? ->
             modelMapper.map(festival, FestivalTO::class.java)
         }
