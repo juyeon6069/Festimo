@@ -1,10 +1,21 @@
 package com.example.festimo.domain.post.entity
 
-enum class PostCategory(val displayName: String) {
-    ETC("기타"),
-    COMPANION("동행자 모집"),
-    REVIEW("후기"),
-    QNA("Q&A");
+import com.fasterxml.jackson.annotation.JsonFormat
+
+@JsonFormat(shape = JsonFormat.Shape.STRING)
+enum class PostCategory {
+    COMPANION,
+    REVIEW,
+    QNA,
+    ETC;
+
+    val displayName: String
+        get() = when (this) {
+            COMPANION -> "동행자 모집"
+            REVIEW -> "후기"
+            QNA -> "Q&A"
+            ETC -> "기타"
+        }
 
     companion object {
         @JvmStatic
