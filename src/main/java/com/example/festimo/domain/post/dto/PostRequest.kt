@@ -1,8 +1,8 @@
 package com.example.festimo.domain.post.dto
 
-import com.example.festimo.domain.post.entity.PostCategory
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import org.springframework.web.multipart.MultipartFile
 
 data class PostRequest(
     @field:NotBlank(message = "제목은 필수 입력 항목입니다.")
@@ -16,6 +16,7 @@ data class PostRequest(
     @field:NotBlank(message = "내용은 필수 입력 항목입니다.")
     val content: String = "",
 
-    val category: PostCategory = PostCategory.COMPANION,
+    val image: MultipartFile? = null,
+    val category: String = "",
     val tags: List<String>? = null
 )

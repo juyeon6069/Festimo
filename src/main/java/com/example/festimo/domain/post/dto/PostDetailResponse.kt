@@ -13,6 +13,7 @@ data class PostDetailResponse(
     var avatar: String? = null,
     var mail: String? = null,
     var content: String = "",
+    var imagePath: String? = null,
     var category: PostCategory? = null,
     var views: Int = 0,
     var replies: Int = 0,

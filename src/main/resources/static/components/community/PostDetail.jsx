@@ -6,14 +6,14 @@ const CATEGORY_STYLES = {
     COMPANION: 'bg-blue-100 text-blue-600',
     REVIEW: 'bg-green-100 text-green-600',
     QNA: 'bg-purple-100 text-purple-600',
-    DEFAULT: 'bg-gray-100 text-gray-600'
+    ETC: 'bg-gray-100 text-gray-600'
 };
 
 const CATEGORY_LABELS = {
     COMPANION: '동행자 모집',
     REVIEW: '후기',
     QNA: 'Q&A',
-    DEFAULT: '기타'
+    ETC: '기타'
 };
 
 // 날짜 포맷팅
@@ -137,6 +137,13 @@ const PostDetail = () => {
     const handleGoToList = () => {
         navigate('/community');
     };
+
+    function getImageUrl(path) {
+        if (path === "/favicon.ico") {
+            return "/favicon.ico";  // favicon 요청은 그대로 반환
+        }
+        return `http://localhost:8080/uploads/${path}`;
+    }
 
     const toggleLike = async () => {
         try {
@@ -497,6 +504,15 @@ const PostDetail = () => {
 
             {/* 본문 섹션 */}
             <div className="mb-6">
+                {post.imagePath && (
+                    <div className="mb-4">
+                        <img
+                            src={getImageUrl(post.imagePath)}
+                            alt="게시글 이미지"
+                            className="max-w-full h-auto rounded-lg shadow-md"
+                        />
+                    </div>
+                )}
                 <p className="text-gray-700 leading-relaxed">{post.content}</p>
             </div>
 
@@ -568,10 +584,11 @@ const PostDetail = () => {
                                                     }))}
                                                     className="p-2 rounded-full hover:bg-gray-200"
                                                 >
-                                                    <MoreVertical size={18} />
+                                                    <MoreVertical size={18}/>
                                                 </button>
                                                 {commentMenuOpen[comment.sequence] && (
-                                                    <div className="absolute right-0 mt-2 w-24 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                                                    <div
+                                                        className="absolute right-0 mt-2 w-24 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
                                                         <button
                                                             onClick={() => handleEditComment(comment.sequence)}
                                                             className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
