@@ -25,7 +25,7 @@ class WebConfig : WebMvcConfigurer {
             .setCacheControl(CacheControl.noCache())
             .resourceChain(false)
 
-        // HTML 파일 접근을 위한 설정 추가
+        // HTML 파일 접근
         registry.addResourceHandler("/html/**")
             .addResourceLocations("classpath:/static/html/")
             .setCacheControl(CacheControl.noCache())
@@ -34,9 +34,15 @@ class WebConfig : WebMvcConfigurer {
         registry.addResourceHandler("/js/**")
             .addResourceLocations("classpath:/static/js/")
             .setCacheControl(CacheControl.noCache())
+
+        // 이미지 업로드
+        registry.addResourceHandler("/uploads/**")
+            .addResourceLocations("file:${System.getProperty("user.dir")}/uploads/posts/")
+            .setCacheControl(CacheControl.maxAge(1, TimeUnit.HOURS))
+            .resourceChain(true)
     }
 
-    // CORS 설정 추가
+    // CORS 설정
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**")
             .allowedOrigins("http://localhost:5173")
