@@ -139,6 +139,7 @@ class CompanionService(
             companionId = companion.companionId,
             leaderId = leader.userId,
             leaderName = leader.userName,
+            status = companion.status,
             members = members
         )
     }

@@ -7,7 +7,6 @@ import com.example.festimo.domain.meet.entity.Applications
 import com.example.festimo.domain.meet.entity.CompanionMember
 import com.example.festimo.domain.meet.entity.CompanionMemberId
 import com.example.festimo.domain.meet.mapper.ApplicationMapper
-import com.example.festimo.domain.meet.mapper.LeaderApplicationMapper
 import com.example.festimo.domain.meet.repository.ApplicationRepository
 import com.example.festimo.domain.meet.repository.CompanionMemberRepository
 import com.example.festimo.domain.meet.repository.CompanionRepository
@@ -95,14 +94,24 @@ class ApplicationService(
             Applications.Status.PENDING
         )
 
-        val userIds = applications
-            .map { it.userId }
-            .toList()
+        val userIds = applications.map { it.userId }
 
         val users = userRepository.findApplicateInfoByUserIds(userIds)
 
-        return LeaderApplicationMapper.INSTANCE.toDtoList(users)
+        return users.map { projection ->
+            val application = applications.find { it.userId == projection.getUserId() }
+                ?: throw IllegalStateException("Application not found for userId: ${projection.getUserId()}")
+
+            LeaderApplicationResponse(
+                applicationId = application.applicationId,
+                userId = projection.getUserId(),
+                nickname = projection.getNickname(),
+                gender = projection.getGender(),
+                ratingAvg = projection.getRatingAvg()
+            )
+        }
     }
+
 
     @Transactional
     fun acceptApplication(applicationId: Long, email: String) {
