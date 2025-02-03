@@ -64,7 +64,7 @@ class CompanionController(
         val email = getEmailFromHeader(authorizationHeader)
         val user = getUserFromEmail(email)
 
-        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)
+        val userId = user.id
 
         val asLeader = companionService.getCompanionAsLeader(userId)
         val asMember = companionService.getCompanionAsMember(userId)
@@ -76,5 +76,40 @@ class CompanionController(
             )
         )
     }
+
+    @PatchMapping("/{companionId}/title")
+    @Operation(summary = "동행 이름 수정")
+    fun updateCompanionTitle(
+        @RequestHeader("Authorization") authorizationHeader: String,
+        @PathVariable companionId: Long,
+        @RequestBody title: String
+    ): ResponseEntity<Void> {
+        val email = getEmailFromHeader(authorizationHeader)
+        companionService.updateTitle(companionId, title, email)
+        return ResponseEntity.noContent().build()
+    }
+
+    @PatchMapping("/{companionId}/status/completed")
+    fun completeCompanion(
+        @RequestHeader("Authorization") authorizationHeader: String,
+        @PathVariable companionId: Long
+    ): ResponseEntity<Void> {
+        val email = getEmailFromHeader(authorizationHeader)
+        companionService.completeCompanion(companionId, email)
+        return ResponseEntity.noContent().build()
+    }
+
+    @PatchMapping("/{companionId}/status/ongoing")
+    fun restoreCompanion(
+        @RequestHeader("Authorization") authorizationHeader: String,
+        @PathVariable companionId: Long
+    ): ResponseEntity<Void> {
+        val email = getEmailFromHeader(authorizationHeader)
+        companionService.restoreCompanion(companionId, email)
+        return ResponseEntity.noContent().build()
+    }
+
+
+
 
 }

@@ -1,5 +1,6 @@
 package com.example.festimo.domain.meet.controller
 
+import com.example.festimo.domain.meet.dto.ApplicantReviewResponse
 import com.example.festimo.domain.meet.dto.ApplicationRequest
 import com.example.festimo.domain.meet.dto.ApplicationResponse
 import com.example.festimo.domain.meet.dto.LeaderApplicationResponse
@@ -10,6 +11,15 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+
+
 
 @RestController
 @RequestMapping("/api/meet")
@@ -60,6 +70,27 @@ class ApplicationController(
         val email = getEmailFromHeader(authorizationHeader)
         applicationService.rejectApplication(applicationId, email)
         return ResponseEntity.ok().build()
+    }
+
+    /**
+     * 신청자 리뷰 확인
+     *
+     * @param applicationId 확인하고 싶은 신청자의 신청 ID
+     * @param page
+     */
+    @GetMapping("/{applicationId}/reviews")
+    fun getApplicantReview(
+        @PathVariable applicationId: Long,
+        page: Int
+    ): ResponseEntity<Page<ApplicantReviewResponse>> {
+        val pageable: Pageable = PageRequest.of(page, 5, Sort.by("createdAt").descending())
+        val reviews: Page<ApplicantReviewResponse> = applicationService.getApplicantReviews(applicationId, pageable)
+
+        if (reviews.isEmpty) {
+            return ResponseEntity.noContent().build()  // 리뷰가 없을 경우
+        }
+
+        return ResponseEntity.ok(reviews)
     }
 
     private fun getEmailFromHeader(authorizationHeader: String): String {
