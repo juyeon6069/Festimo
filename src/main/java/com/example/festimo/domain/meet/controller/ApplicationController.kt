@@ -46,9 +46,9 @@ class ApplicationController(
         @PathVariable companionId: Long
     ): ResponseEntity<List<LeaderApplicationResponse>> {
         val email = getEmailFromHeader(authorizationHeader)
-        val responses = applicationService.getAllApplications(companionId, email).orEmpty()
-        return ResponseEntity.ok(responses)
+        return ResponseEntity.ok(applicationService.getAllApplications(companionId, email).orEmpty())
     }
+
 
     @PostMapping("/{applicationId}/accept")
     @Operation(summary = "리더의 동행 신청 승인")
