@@ -17,7 +17,7 @@ const Profile = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalTitle, setModalTitle] = useState('');
     const [modalData, setModalData] = useState([]);
-    // const [isFollowing, setIsFollowing] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(false);
 
     const currentUser = JSON.parse(localStorage.getItem("userInfo") || "{}");
     console.log("Current user:", currentUser);
@@ -39,23 +39,23 @@ const Profile = () => {
             .catch(err => console.error("Error fetching reviews", err));
     };
 
-    // const fetchFollowStatus = (profileId) => {
-    //     if (!currentUser || !currentUser.id || !profileId) {
-    //         console.warn("팔로우 상태 확인을 위한 정보가 부족합니다.");
-    //         return;
-    //     }
-    //     fetch(`/api/follow/check?followerId=${currentUser.id}&followeeId=${profileId}`)
-    //         .then(response => {
-    //             if (!response.ok) {
-    //                 throw new Error('Error checking follow status');
-    //             }
-    //             return response.json();
-    //         })
-    //         .then(status => {
-    //             setIsFollowing(status);
-    //         })
-    //         .catch(err => console.error("Error checking follow status", err));
-    // };
+    const fetchFollowStatus = (profileId) => {
+        if (!currentUser || !currentUser.id || !profileId) {
+            console.warn("팔로우 상태 확인을 위한 정보가 부족합니다.");
+            return;
+        }
+        fetch(`/api/follow/check?followerId=${currentUser.id}&followeeId=${profileId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error checking follow status');
+                }
+                return response.json();
+            })
+            .then(status => {
+                setIsFollowing(status);
+            })
+            .catch(err => console.error("Error checking follow status", err));
+    };
 
 
     // 팔로워 목록 불러오기 (모달용)
@@ -102,6 +102,7 @@ const Profile = () => {
                 return response.json();
             })
             .then(userData => {
+                console.log("Fetched user data:", userData);
                 setProfile(userData);
                 const userId = userData.id;
 
@@ -130,7 +131,7 @@ const Profile = () => {
                 // 초기 받은 리뷰 조회 (페이지 1)
                 fetchReviews(userId, 1);
 
-                // fetchFollowStatus(userId);
+                fetchFollowStatus(userId);
             })
             .catch(err => console.error("Error fetching user", err));
     }, [userEmail]);
@@ -145,65 +146,62 @@ const Profile = () => {
         }
     };
 
-    // // 팔로우 요청 함수 (POST)
-    // const handleFollow = () => {
-    //     console.log("handleFollow: currentUser=", currentUser, "profile=", profile);
-    //     const token = localStorage.getItem("accessToken");
-    //     fetch(`/api/follow`, {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'Authorization': `Bearer ${token}`
-    //         },
-    //         body: JSON.stringify({
-    //             followerId: currentUser.id,
-    //             followeeId: profile.id
-    //         })
-    //     })
-    //         .then(response => {
-    //             if (!response.ok) {
-    //                 throw new Error('팔로우 요청에 실패했습니다.');
-    //             }
-    //             return response.json();
-    //         })
-    //         .then(data => {
-    //             setIsFollowing(true);
-    //             setFollowersCount(prev => prev + 1);
-    //         })
-    //         .catch(err => {
-    //             console.error("Error following user:", err);
-    //             alert(err.message);
-    //         });
-    // };
-    //
-    // // 언팔로우 요청 함수 (DELETE)
-    // const handleUnfollow = () => {
-    //     const token = localStorage.getItem("accessToken");
-    //     fetch(`/api/follow?followerId=${currentUser.id}&followeeId=${profile.id}`, {
-    //         method: 'DELETE',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'Authorization': `Bearer ${token}`
-    //         }
-    //     })
-    //         .then(response => {
-    //             if (!response.ok) {
-    //                 throw new Error('언팔로우 요청에 실패했습니다.');
-    //             }
-    //             return response.text();
-    //         })
-    //         .then(() => {
-    //             setIsFollowing(false);
-    //             setFollowersCount(prev => prev - 1);
-    //         })
-    //         .catch(err => {
-    //             console.error("Error unfollowing user:", err);
-    //             alert(err.message);
-    //         });
-    // };
-    //
-    // // 현재 로그인 사용자가 본인 프로필이면 팔로우 버튼 미노출
-    // const showFollowButton = currentUser.id && currentUser.id !== profile.id;
+    // 팔로우 요청 함수 (POST)
+    const handleFollow = () => {
+        console.log("handleFollow: currentUser=", currentUser, "profile=", profile);
+        const token = localStorage.getItem("accessToken");
+        fetch(`/api/follow`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                followerId: currentUser.id,
+                followeeId: profile.id
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('팔로우 요청에 실패했습니다.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                setIsFollowing(true);
+                setFollowersCount(prev => prev + 1);
+            })
+            .catch(err => {
+                console.error("Error following user:", err);
+                alert(err.message);
+            });
+    };
+
+    // 언팔로우 요청 함수 (DELETE)
+    const handleUnfollow = () => {
+        const token = localStorage.getItem("accessToken");
+        fetch(`/api/follow?followerId=${currentUser.id}&followeeId=${profile.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('언팔로우 요청에 실패했습니다.');
+                }
+                return response.text();
+            })
+            .then(() => {
+                setIsFollowing(false);
+                setFollowersCount(prev => prev - 1);
+            })
+            .catch(err => {
+                console.error("Error unfollowing user:", err);
+                alert(err.message);
+            });
+    };
 
 
     // 모달 닫기 핸들러
@@ -223,17 +221,18 @@ const Profile = () => {
         return <div>Loading...</div>;
     }
 
+    //현재 로그인 사용자가 본인 프로필이면 팔로우 버튼 미노출
+    const showFollowButton = currentUser.id && currentUser.id !== profile.id;
+
     return (
         <div className="profile-page">
             <div className="profile-header">
-                {/* 왼쪽: 프로필 이미지 */}
                 <div className="profile-image">
                     <img
                         src={profile.avatar || "/imgs/default-avatar.png"}
                         alt="Profile"
                     />
                 </div>
-                {/* 오른쪽: 사용자 이름과 통계 */}
                 <div className="profile-info">
                     <h2 className="user-name">{profile.userName}</h2>
                     <div className="profile-stats">
@@ -252,19 +251,19 @@ const Profile = () => {
                             <span className="stat-value">{followersCount}</span>
                         </div>
                     </div>
-                    {/*{showFollowButton && (*/}
-                    {/*    <div style={{ marginTop: '10px' }}>*/}
-                    {/*        {isFollowing ? (*/}
-                    {/*            <button onClick={handleUnfollow} className="follow-btn unfollow">*/}
-                    {/*                팔로우 끊기*/}
-                    {/*            </button>*/}
-                    {/*        ) : (*/}
-                    {/*            <button onClick={handleFollow} className="follow-btn follow">*/}
-                    {/*                팔로우 하기*/}
-                    {/*            </button>*/}
-                    {/*        )}*/}
-                    {/*    </div>*/}
-                    {/*)}*/}
+                    {showFollowButton && (
+                        <div className="follow-btn-container">
+                            {isFollowing ? (
+                                <button onClick={handleUnfollow} className="follow-btn unfollow">
+                                    팔로우 끊기
+                                </button>
+                            ) : (
+                                <button onClick={handleFollow} className="follow-btn follow">
+                                    팔로우 하기
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
