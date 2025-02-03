@@ -83,7 +83,7 @@ class ReviewController(
     fun getPagedReviews(
         @PathVariable revieweeId: Long,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(defaultValue = "5") size: Int,
         @RequestParam(defaultValue = "createdAt") sortBy: String,
         @RequestParam(defaultValue = "desc") sortDir: String
     ): ResponseEntity<Page<ReviewResponseDTO>> {

@@ -36,6 +36,16 @@ class FollowController(
         return ResponseEntity.noContent().build()
     }
 
+    @GetMapping("/check")
+    fun checkFollow(
+        @RequestParam followerId: Long,
+        @RequestParam followeeId: Long
+    ): ResponseEntity<Boolean> {
+        val isFollowing = followService.checkFollow(followerId, followeeId)
+        return ResponseEntity.ok(isFollowing)
+    }
+
+
     // 특정 사용자의 팔로워 목록 조회
     @GetMapping("/followers/{userId}")
     fun getFollowers(@PathVariable userId: Long): ResponseEntity<List<UserDTO>> {

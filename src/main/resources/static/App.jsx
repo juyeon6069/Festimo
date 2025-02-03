@@ -28,7 +28,7 @@ const App = () => {
                     <Route path="/post/write" element={<PostWrite />} />
                     <Route path="/post/edit/:postId" element={<PostWrite />} />
                     <Route path="/post/:postId" element={<PostDetail />} />
-                    <Route path="/profile/:userId" element={<Profile />} /> // TODO: Profile 컴포넌트
+                    <Route path="/profile/:mail" element={<Profile />} /> // TODO: Profile 컴포넌트
                 </Routes>
             </div>
         </BrowserRouter>

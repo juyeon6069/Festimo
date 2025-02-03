@@ -107,6 +107,7 @@ open class UserService(
 
         tokens.nickname = user.nickname
         tokens.email = user.email
+        tokens.id = user.id
 
         logger.info("Login successful for email: {}", email)
         return tokens

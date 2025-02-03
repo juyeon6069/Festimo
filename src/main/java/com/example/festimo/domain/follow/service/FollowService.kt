@@ -41,6 +41,13 @@ class FollowService(
         followRepository.delete(follow)
     }
 
+    @Transactional(readOnly = true)
+    fun checkFollow(followerId: Long, followeeId: Long): Boolean {
+        // 팔로우 관계가 존재하면 true, 없으면 false 반환
+        return followRepository.findByFollowerIdAndFolloweeId(followerId, followeeId) != null
+    }
+
+
     // List<User> 반환
     @Transactional(readOnly = true)
     fun getFollowers(userId: Long) = followRepository.findAllByFolloweeId(userId).map { it.follower }

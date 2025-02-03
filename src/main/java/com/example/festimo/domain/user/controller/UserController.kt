@@ -53,7 +53,8 @@ class UserController (
                 java.util.Map.of(
                     "accessToken", accessToken,
                     "nickname", tokenResponseDTO.nickname,
-                    "email", tokenResponseDTO.email
+                    "email", tokenResponseDTO.email,
+                    "id", tokenResponseDTO.id,
                 )
             )
     }

@@ -6,5 +6,6 @@ data class UserResponseDTO (
     var nickname: String? = null,
     var email: String? = null,
     var role: String? = null,
-    var gender: String? = null // rating
+    var gender: String? = null,
+    var ratingAvg: Float? = null
 )
