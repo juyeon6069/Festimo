@@ -100,21 +100,16 @@ class CompanionService(
             .map(::mapToCompanionResponse)
             .orEmpty()
 
-    fun getCompanionAsMember(userId: Long): List<CompanionResponse> {
-        val members = companionMemberRepository.findByUserId(userId)
-
-        return members
-            .filter {
-                val hasCompanion = it.companion != null
-                val hasUser = it.user != null
-                hasCompanion && hasUser
+    fun getCompanionAsMember(userId: Long): List<CompanionResponse> =
+        companionMemberRepository.findByUserId(userId)
+            .asSequence()
+            .mapNotNull { member ->
+                member.companion?.takeIf {
+                    member.user != null && it.leaderId != userId
+                }
             }
-            .filter {
-                val companionLeaderId = it.companion?.leaderId
-                companionLeaderId != userId
-            }
-            .map { mapToCompanionResponse(it.companion!!) }
-    }
+            .map(::mapToCompanionResponse)
+            .toList()
 
     private fun mapToCompanionResponse(companion: Companion): CompanionResponse {
         val leader = companionRepository.findLeaderById(companion.leaderId!!)

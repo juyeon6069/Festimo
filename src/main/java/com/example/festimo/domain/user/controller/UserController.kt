@@ -177,4 +177,5 @@ class UserController(
         response.gender = user.gender?.name
         return ResponseEntity.ok(response)
     }
+
 }

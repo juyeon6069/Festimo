@@ -13,6 +13,7 @@ window.openEditTitleModal = openEditTitleModal;
 window.closeEditTitleModal = closeEditTitleModal;
 window.updateCompanionTitle = updateCompanionTitle;
 
+
 window.toggleMemberView = function(view) {
     document.getElementById('ongoing-members').classList.toggle('hidden', view !== 'ongoing');
     document.getElementById('completed-members').classList.toggle('hidden', view !== 'completed');
@@ -280,31 +281,35 @@ async function loadApplications(companionId) {
             row.classList.add("application-row");
 
             row.innerHTML = `
-                <div class="application-info">
-                    <div>
-                        <span>닉네임</span>
-                        <div class="font-medium mt-1">${application.nickname}</div>
-                    </div>
-                    <div>
-                        <span>성별</span>
-                        <div class="font-medium mt-1">${application.gender === 'MALE' ? '남성' : '여성'}</div>
-                    </div>
-                    <div>
-                        <span>평점</span>
-                        <div class="font-medium mt-1">${application.ratingAvg.toFixed(1)}</div>
-                    </div>
-                </div>
-                <div class="application-actions">
-                    <button onclick="acceptApplication(${application.applicationId}, ${companionId})" class="accept-button">
-                        <span class="material-icons">check</span>
-                        수락
-                    </button>
-                    <button onclick="rejectApplication(${application.applicationId}, ${companionId})" class="reject-button">
-                        <span class="material-icons">close</span>
-                        거절
-                    </button>
-                </div>
-            `;
+    <div class="application-info">
+        <div>
+            <span>닉네임</span>
+            <div class="font-medium mt-1">${application.nickname}</div>
+        </div>
+        <div>
+            <span>성별</span>
+            <div class="font-medium mt-1">${application.gender === 'MALE' ? '남성' : '여성'}</div>
+        </div>
+        <div>
+            <span>평점</span>
+            <div class="font-medium mt-1">${application.ratingAvg.toFixed(1)}</div>
+        </div>
+    </div>
+    <div class="application-actions">
+        <button onclick="viewApplicantReviews(${application.applicationId})" class="review-button">
+            <span class="material-icons">rate_review</span>
+            리뷰보기
+        </button>
+        <button onclick="acceptApplication(${application.applicationId}, ${companionId})" class="accept-button">
+            <span class="material-icons">check</span>
+            수락
+        </button>
+        <button onclick="rejectApplication(${application.applicationId}, ${companionId})" class="reject-button">
+            <span class="material-icons">close</span>
+            거절
+        </button>
+    </div>
+`;
             applicationTable.appendChild(row);
         });
     } catch (error) {
@@ -313,6 +318,80 @@ async function loadApplications(companionId) {
             '<div class="application-row">데이터를 불러오는데 실패했습니다.</div>';
     }
 }
+
+// 리뷰 조회 함수 추가
+window.viewApplicantReviews = async function(applicationId, page = 0) {
+    try {
+        const reviews = await apiRequest(`/api/meet/${applicationId}/reviews?page=${page}`);
+
+        if (reviews && reviews.content && reviews.content.length > 0) {
+            showReviewsModal(reviews, applicationId);
+        } else {
+            alert('작성된 리뷰가 없습니다.');
+        }
+    } catch (error) {
+        console.error("Error fetching reviews:", error);
+        alert('리뷰를 불러오는데 실패했습니다.');
+    }
+};
+
+// 리뷰 모달을 표시하는 함수
+window.showReviewsModal = function(reviews, applicationId) {
+    const existingModal = document.getElementById('reviewsViewModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'reviewsViewModal';
+    modal.className = 'modal active';
+
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">받은 리뷰 목록</h2>
+                <span class="close-btn" onclick="closeReviewsViewModal()">&times;</span>
+            </div>
+            <div class="reviews-container">
+                ${reviews.content.map(review => `
+                    <div class="review-item">
+                        <div class="review-rating">★ ${review.rating.toFixed(1)}</div>
+                        <div class="review-content">${review.content}</div>
+                      
+                    </div>
+                `).join('')}
+            </div>
+            ${reviews.totalPages > 1 ? `
+                <div class="pagination">
+                    ${createPaginationButtons(reviews, applicationId)}
+                </div>
+            ` : ''}
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+};
+
+window.createPaginationButtons = function(reviews, applicationId) {
+    let buttons = '';
+    for (let i = 0; i < reviews.totalPages; i++) {
+        buttons += `
+            <button class="page-btn ${reviews.number === i ? 'active' : ''}" 
+                    onclick="viewApplicantReviews(${applicationId}, ${i})">
+                ${i + 1}
+            </button>
+        `;
+    }
+    return buttons;
+};
+
+window.closeReviewsViewModal = function() {
+    const modal = document.getElementById('reviewsViewModal');
+    if (modal) {
+        modal.remove();
+    }
+};
+
 
 
 
@@ -447,4 +526,3 @@ async function submitReview(reviewData) {
         throw new Error('리뷰 작성 실패');
     }
 }
-
