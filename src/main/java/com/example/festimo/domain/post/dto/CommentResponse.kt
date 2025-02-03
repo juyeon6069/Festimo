@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class CommentResponse(
+    val userId: Long?,
     val sequence: Int,
     val comment: String,
     val nickname: String,

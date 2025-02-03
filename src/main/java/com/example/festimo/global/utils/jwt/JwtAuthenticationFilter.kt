@@ -23,8 +23,10 @@ class JwtAuthenticationFilter(
         logger.debug("Incoming request path: {}", requestPath)
 
         // 인증 제외 경로 처리
-        if (requestPath.startsWith("/swagger-ui") || requestPath.startsWith("/v3/api-docs")) {
-            logger.debug("Swagger 요청 필터 제외: {}", requestPath)
+        if (requestPath.startsWith("/swagger-ui") ||
+            requestPath.startsWith("/v3/api-docs") ||
+            requestPath.startsWith("/uploads")) {
+            logger.debug("인증 제외 경로: {}", requestPath)
             chain.doFilter(request, response)
             return
         }

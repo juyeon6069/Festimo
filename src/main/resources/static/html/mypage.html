@@ -23,6 +23,11 @@
             </div>
         </div>
 
+        <div class="follow-stats">
+            <span><strong>팔로잉:</strong> <span id="following-count">0</span></span>
+            <span><strong>팔로워:</strong> <span id="followers-count">0</span></span>
+        </div>
+
         <button class="edit-profile-btn" id="edit-profile-btn">프로필 수정</button>
     </section>
 
@@ -55,6 +60,16 @@
         </div>
     </section>
 </main>
+
+<!-- 팔로우 목록을 표시할 모달 창 -->
+<div id="follow-modal" class="modal">
+    <div class="modal-content">
+        <span id="modal-close" class="close">&times;</span> <!-- 추가: 모달 닫기 버튼 -->
+        <h3 id="modal-title"></h3>
+        <ul id="follow-list"></ul>
+    </div>
+</div>
+
 
 <footer>
     <p>&copy; 2025 Festimo. All rights reserved.</p>

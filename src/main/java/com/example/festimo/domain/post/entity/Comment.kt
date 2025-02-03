@@ -1,6 +1,7 @@
 package com.example.festimo.domain.post.entity
 
 import com.example.festimo.domain.post.BaseTimeEntity
+import com.example.festimo.domain.user.domain.User
 import jakarta.persistence.*
 
 @Entity
@@ -18,6 +19,10 @@ class Comment(
     @ManyToOne
     @JoinColumn(name = "post_id")
     var post: Post,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    var user: User? = null,
 
     @Column(nullable = false)
     var sequence: Int

@@ -5,6 +5,7 @@ import HeroSection from './components/home/HeroSection';
 import CommunityPage from './components/community/CommunityPage';
 import PostDetail from './components/community/PostDetail';
 import PostWrite from "@/main/resources/static/components/community/PostWrite";
+import Profile from './components/profile/Profile'; // TODO: Profile 컴포넌트
 
 
 const Home = () => (
@@ -27,6 +28,7 @@ const App = () => {
                     <Route path="/post/write" element={<PostWrite />} />
                     <Route path="/post/edit/:postId" element={<PostWrite />} />
                     <Route path="/post/:postId" element={<PostDetail />} />
+                    <Route path="/profile/:userId" element={<Profile />} /> // TODO: Profile 컴포넌트
                 </Routes>
             </div>
         </BrowserRouter>
