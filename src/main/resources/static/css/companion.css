@@ -130,26 +130,15 @@ body {
     background: #4a5568;
 }
 
-/* 모달 스타일 */
-.modal {
-    display: none; /* 기본적으로 숨김 처리 */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-}
 
 .modal-content {
     position: relative;
     background-color: #fff;
-    margin: 15% auto;
-    padding: 24px;
+    margin: 10% auto; /* 상단 여백 줄임 */
+    padding: 32px; /* 패딩 증가 */
     width: 90%;
-    max-width: 400px;
-    border-radius: 12px;
+    max-width: 600px; /* 최대 너비 증가 */
+    border-radius: 16px;
     border: 1px solid #e5e7eb;
     animation: fadeIn 0.3s ease-in-out;
 }
@@ -199,55 +188,94 @@ body {
 
 .application-row {
     border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    background-color: #f9fafb;
+    transition: all 0.2s ease;
 }
 
+.application-row:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+}
+
+
 .application-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr; /* 닉네임 칸을 더 넓게 */
+    gap: 24px;
+    margin-bottom: 20px;
     color: #4b5563;
 }
 
-.application-info span {
-    font-weight: 500;
+
+.application-info > div > span {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 4px;
 }
+
+.application-info > div > .font-medium {
+    font-size: 1rem;
+    color: #111827;
+}
+
 
 .application-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 12px;
 }
 
 /* 버튼 상태별 스타일 */
+.accept-button, .reject-button {
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    border: none;  /* 테두리 제거 */
+}
+
 .accept-button {
-    background-color: #f0fdf4;
-    color: #16a34a;
-    padding: 8px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    background-color: #ecfdf5;
+    color: #059669;
 }
 
 .reject-button {
     background-color: #fef2f2;
     color: #dc2626;
-    padding: 8px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s;
 }
 
 .accept-button:hover {
-    background-color: #dcfce7;
+    background-color: #d1fae5;
 }
 
 .reject-button:hover {
     background-color: #fee2e2;
 }
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.status-badge {
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
 
 /* 폼 및 텍스트 영역 */
 textarea {
@@ -297,3 +325,149 @@ select {
     }
 }
 
+.application-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+    color: #4b5563;
+}
+
+.application-info > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.mt-1 {
+    margin-top: 4px;
+}
+
+.companion-title {
+    font-size: 1.4rem;  /* 글자 크기 조금 키움 */
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;  /* 가운데 정렬 */
+    display: block;
+}
+
+/*
+
+ */
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #4a5568;
+}
+
+.section-title.completed {
+    color: #718096; /* 완료된 동행은 흐리게 */
+}
+
+.companion-card.completed {
+    background-color: #f3f4f6; /* 완료된 동행은 연한 회색 배경 */
+    opacity: 0.8; /* 흐리게 */
+}
+
+.empty-message {
+    text-align: center;
+    color: #718096;
+    font-style: italic;
+}
+.hidden {
+    display: none;
+}
+
+/* 토글 버튼 스타일 */
+.toggle-buttons {
+    display: flex;
+    justify-content: center; /* 버튼을 가운데 정렬 */
+    margin-bottom: 16px;
+    gap: 10px; /* 버튼 간격 */
+}
+
+.toggle-btn {
+    background-color: #6b46c1; /* 기존 디자인과 어울리는 보라색 */
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px; /* 둥글게 */
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(107, 70, 193, 0.2);
+}
+
+.toggle-btn:hover {
+    background-color: #553c9a; /* 살짝 어두운 보라색 */
+    box-shadow: 0 6px 10px rgba(107, 70, 193, 0.3);
+}
+
+.toggle-btn.active {
+    background-color: #9333ea; /* 활성화된 버튼 색상 강조 */
+    box-shadow: 0 6px 10px rgba(147, 51, 234, 0.4);
+}
+
+.modal {
+    display: none; /* 기본적으로 숨김 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    /* 아래 속성들은 모달이 활성화될 때 적용 */
+    align-items: center;
+    justify-content: center;
+}
+
+/* 모달이 활성화될 때 추가될 클래스 */
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.save-title-btn {
+    background-color: #6b46c1;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save-title-btn:hover {
+    background-color: #553c9a;
+}

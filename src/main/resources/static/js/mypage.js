@@ -11,6 +11,9 @@ async function fetchUserData() {
         document.getElementById('welcome-message').textContent = `${data.userName}`;
         document.getElementById('nickname').textContent = data.nickname;
         document.getElementById('email').textContent = data.email;
+
+        fetchFollowCounts(data.id);
+        window.currentUserId = data.id;
     } catch (error) {
         if(error.message==='Require Login'){
             alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
@@ -21,6 +24,44 @@ async function fetchUserData() {
         }
     }
 }
+
+// 추가: 특정 사용자 ID에 대해 팔로워/팔로잉 수를 별도로 가져오는 함수
+async function fetchFollowCounts(userId) {
+    try {
+        // 팔로워 수 가져오기
+        const followersCount = await apiRequest(`/api/follow/followers/count?userId=${userId}`, { method: 'GET' });
+        // 팔로잉 수 가져오기
+        const followingCount = await apiRequest(`/api/follow/following/count?userId=${userId}`, { method: 'GET' });
+
+        document.getElementById('followers-count').textContent = followersCount;
+        document.getElementById('following-count').textContent = followingCount;
+    } catch (error) {
+        console.error('Error fetching follow counts:', error);
+    }
+}
+
+// 팔로워 목록을 가져와 모달에 표시하는 함수
+async function fetchFollowersList(userId) {
+    try {
+        const data = await apiRequest(`/api/follow/followers/${userId}`, { method: 'GET' });
+        showFollowModal("팔로워 목록", data);
+    } catch (error) {
+        console.error('Error fetching followers list:', error);
+        alert('팔로워 목록을 불러오지 못했습니다.');
+    }
+}
+
+// 팔로잉 목록을 가져와 모달에 표시하는 함수
+async function fetchFollowingList(userId) {
+    try {
+        const data = await apiRequest(`/api/follow/following/${userId}`, { method: 'GET' });
+        showFollowModal("팔로잉 목록", data);
+    } catch (error) {
+        console.error('Error fetching following list:', error);
+        alert('팔로잉 목록을 불러오지 못했습니다.');
+    }
+}
+
 // 내가 쓴 리뷰 가져오기
 async function fetchWrittenReviews(page = 0, size = 5) {
     try {
@@ -90,6 +131,37 @@ async function fetchReceivedReviews(page = 0, size = 5) {
     }
 }
 
+// 모달 창을 열고 목록을 표시하는 함수
+function showFollowModal(title, listData) {
+    const modal = document.getElementById('follow-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const followList = document.getElementById('follow-list');
+
+    modalTitle.textContent = title;
+    followList.innerHTML = ''; // 기존 목록 초기화
+
+    // listData가 배열인 경우
+    if (Array.isArray(listData) && listData.length > 0) {
+        listData.forEach(item => {
+            const li = document.createElement('li');
+            const nicknameSpan = document.createElement('span');
+            nicknameSpan.textContent = item.nickname;
+            nicknameSpan.classList.add('follow-item-nickname');
+            li.appendChild(nicknameSpan);
+
+            followList.appendChild(li);
+        });
+    } else {
+        followList.innerHTML = '<li>표시할 사용자가 없습니다.</li>';
+    }
+    modal.style.display = 'block';  // 모달 보이기
+}
+
+// 모달 닫기 함수
+function closeFollowModal() {
+    document.getElementById('follow-modal').style.display = 'none';
+}
+
 
 // 페이지네이션 버튼 렌더링
 function renderPagination(totalPages, currentPage, fetchFunction, containerId) {
@@ -145,11 +217,31 @@ function initializeEventListeners() {
             showTab(tabId);
         });
     });
+
+    // 팔로잉/팔로워 클릭 이벤트 등록
+    document.getElementById('following-count').parentElement.addEventListener('click', () => {
+        fetchFollowingList(window.currentUserId);
+    });
+    document.getElementById('followers-count').parentElement.addEventListener('click', () => {
+        fetchFollowersList(window.currentUserId);
+    });
+
+    // 모달 닫기 버튼 이벤트 등록
+    document.getElementById('modal-close').addEventListener('click', closeFollowModal);
+
+    // 모달 외부 클릭 시 닫기 (옵션)
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('follow-modal');
+        if (event.target === modal) {
+            closeFollowModal();
+        }
+    });
 }
 
 // DOMContentLoaded 이벤트에서 초기화 실행
 document.addEventListener('DOMContentLoaded', () => {
     fetchUserData(); // 사용자 데이터 가져오기
+    fetchFollowCounts(); // 팔로우.팔로잉 수 가져오기
     fetchWrittenReviews(); // 내가 쓴 리뷰 가져오기
     initializeEventListeners(); // 이벤트 리스너 등록
 });

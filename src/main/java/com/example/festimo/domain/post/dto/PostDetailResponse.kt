@@ -7,11 +7,13 @@ import com.fasterxml.jackson.annotation.JsonInclude
 data class PostDetailResponse(
     var id: Long? = null,
     var postId: Long? = null,
+    var userId: Long?,
     var title: String = "",
     var nickname: String = "",
     var avatar: String? = null,
     var mail: String? = null,
     var content: String = "",
+    var imagePath: String? = null,
     var category: PostCategory? = null,
     var views: Int = 0,
     var replies: Int = 0,

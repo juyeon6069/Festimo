@@ -4,11 +4,13 @@ import com.example.festimo.domain.meet.dto.CompanionResponse
 import com.example.festimo.domain.meet.entity.Companion
 import com.example.festimo.domain.meet.entity.CompanionMember
 import com.example.festimo.domain.meet.entity.CompanionMemberId
+import com.example.festimo.domain.meet.entity.CompanionStatus
 import com.example.festimo.domain.meet.repository.CompanionMemberRepository
 import com.example.festimo.domain.meet.repository.CompanionRepository
 import com.example.festimo.domain.post.repository.PostRepository
 import com.example.festimo.domain.user.domain.User
 import com.example.festimo.domain.user.repository.UserRepository
+import com.example.festimo.exception.CompanionNotFoundException
 import com.example.festimo.exception.CustomException
 import com.example.festimo.exception.ErrorCode.*
 
@@ -27,27 +29,48 @@ class CompanionService(
         userRepository.findByEmail(email)
             ?: throw CustomException(USER_NOT_FOUND)
 
+    private fun validateLeaderAccess(companionId: Long, userId: Long) {
+        val leaderId = companionRepository.findLeaderIdByCompanyId(companionId)
+            .orElseThrow { CustomException(COMPANION_NOT_FOUND) }
+
+        if (userId != leaderId) {
+            throw CustomException(ACCESS_DENIED)
+        }
+    }
+
     @Transactional
     fun createCompanion(postId: Long, email: String) {
         val user = getUserFromEmail(email)
-        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)
 
+        // post_id 검사
         val post = postRepository.findById(postId)
             .orElseThrow { CustomException(POST_NOT_FOUND) }
 
+        // 중복 생성 방지
         companionRepository.findByPost(post)
             .ifPresent { throw CustomException(COMPANION_ALREADY_EXISTS) }
 
-        val companion = Companion(leaderId = userId, companionDate = LocalDateTime.now(), post = post)
+        // companion 추가
+        val now = LocalDateTime.now()
+        val companion = Companion(
+            companionId = 0,
+            leaderId = user.id,
+            companionDate = now,
+            post = post,
+            title = "동행",
+            status = CompanionStatus.ONGOING
+        )
         val savedCompanion = companionRepository.save(companion)
-        addLeaderToCompanionMember(savedCompanion.companionId, userId)
+
+        // companion_member 추가
+        addLeaderToCompanionMember(savedCompanion.companionId, user.id)
     }
 
     private fun addLeaderToCompanionMember(companionId: Long, userId: Long) {
         val user = userRepository.findById(userId)
             .orElseThrow { CustomException(USER_NOT_FOUND) }
         val companion = companionRepository.findById(companionId)
-            .orElseThrow { CustomException(COMPANION_NOT_FOUND) }
+            .orElseThrow { CustomException(COMPANION_MEMBER_NOT_FOUND) }
 
         // id 초기화를 명시적으로
         val companionMemberId = CompanionMemberId(companionId, userId)
@@ -64,12 +87,12 @@ class CompanionService(
     @Transactional
     fun deleteCompanion(companionId: Long, email: String) {
         val user = getUserFromEmail(email)
-        val userId = user.id ?: throw CustomException(USER_NOT_FOUND)
+        val userId = user.id
 
         val companionMemberId = CompanionMemberId(companionId, userId)
 
         if (!companionMemberRepository.existsById(companionMemberId)) {
-            throw CustomException(COMPANION_NOT_FOUND)
+            throw CustomException(COMPANION_MEMBER_NOT_FOUND)
         }
         companionMemberRepository.deleteById(companionMemberId)
     }
@@ -112,11 +135,54 @@ class CompanionService(
 
 
         return CompanionResponse(
+            title = companion.title,
             companionId = companion.companionId,
             leaderId = leader.userId,
             leaderName = leader.userName,
+            status = companion.status,
             members = members
         )
+    }
+
+    @Transactional
+    fun updateTitle(companionId: Long, title: String, email: String) {
+        val user = getUserFromEmail(email)
+        validateLeaderAccess(companionId, user.id)
+
+        val companion = companionRepository.findById(companionId)
+            .orElseThrow { CustomException(COMPANION_NOT_FOUND) }
+
+        companion.changeTitle(title)
+    }
+
+    @Transactional
+    fun completeCompanion(companionId: Long, email: String) {
+        val user = getUserFromEmail(email)
+        validateLeaderAccess(companionId, user.id)
+
+        val companion = companionRepository.findById(companionId)
+            .orElseThrow { CompanionNotFoundException() }
+
+        if (companion.status == CompanionStatus.COMPLETED) {
+            throw CustomException(ALREADY_COMPLETED)
+        }
+
+        companion.changeStatus(CompanionStatus.COMPLETED)
+    }
+
+    @Transactional
+    fun restoreCompanion(companionId: Long, email: String) {
+        val user = getUserFromEmail(email)
+        validateLeaderAccess(companionId, user.id)
+
+        val companion = companionRepository.findById(companionId)
+            .orElseThrow { CompanionNotFoundException() }
+
+        if (companion.status == CompanionStatus.ONGOING) {
+            throw CustomException(ALREADY_ONGOING)
+        }
+
+        companion.changeStatus(CompanionStatus.ONGOING)
     }
 
 

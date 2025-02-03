@@ -29,6 +29,11 @@ enum class ErrorCode(
     PASSWORD_MISSING_NUMBER(HttpStatus.BAD_REQUEST, "비밀번호 숫자를 확인해주세요."),
     PASSWORD_MISSING_SPECIAL_CHARACTER(HttpStatus.BAD_REQUEST, "비밀번호 특수문자를 확인해주세요."),
 
+    INVALID_TITLE(HttpStatus.BAD_REQUEST, "제목을 비울 수 없습니다."),
+
+    ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "이미 완료된 동행입니다."),
+    ALREADY_ONGOING(HttpStatus.BAD_REQUEST, "이미 진행 중인 동행입니다."),
+
     /*
      * 401 UNAUTHORIZED
      */
@@ -54,9 +59,9 @@ enum class ErrorCode(
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다."),
-    COMPANY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 동행을 찾을 수 없습니다."),
+    COMPANION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 동행을 찾을 수 없습니다."),
     APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 신청을 찾을 수 없습니다."),
-    COMPANION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 동행의 동행원이 아닙니다."),
+    COMPANION_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 동행의 동행원이 아닙니다."),
 
     /*
      * 405 METHOD_NOT_ALLOWED: 허용되지 않은 Request Method 호출
@@ -71,5 +76,12 @@ enum class ErrorCode(
     /*
      * 500 INTERNAL_SERVER_ERROR
      */
-    IMAGE_UPLOAD_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다.")
+    IMAGE_UPLOAD_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다."),
+
+    // 팔로우 관련 에러 코드 추가
+    SELF_FOLLOW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다."),
+    ALREADY_FOLLOWED(HttpStatus.BAD_REQUEST, "이미 팔로우한 사용자입니다."),
+    FOLLOWER_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로워를 찾을 수 없습니다."),
+    FOLLOWEE_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로우 대상 사용자를 찾을 수 없습니다."),
+    FOLLOW_RELATION_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로우 관계가 존재하지 않습니다.")
 }
