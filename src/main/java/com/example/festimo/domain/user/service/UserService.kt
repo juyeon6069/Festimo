@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 import java.util.*
 import java.util.function.Supplier
 
@@ -69,6 +70,7 @@ open class UserService(
         user.role = User.Role.USER
         user.provider = User.Provider.LOCAL
         user.ratingAvg = 0.0f // 기본값 설정
+        user.createdDate = LocalDateTime.now()
 
         // Gender 처리
         try {

@@ -58,29 +58,6 @@ class UserController (
             )
     }
 
-    // @Operation(summary = "로그아웃")
-    // @PostMapping("/logout")
-    // public ResponseEntity<String> logout(@RequestHeader(value = "Authorization", required = false) String refreshToken) {
-    //     if (refreshToken == null || !refreshToken.startsWith("Bearer ")) {  // Authorization 헤더 없을 경우, Bearer 토큰 형식 아닐경우
-    //         throw new IllegalArgumentException("Invalid token format.");
-    //     }
-    //     userService.logout(refreshToken.substring(7));  // 앞에 접두사 Bearer 제외
-    //     return ResponseEntity.ok("Logged out successfully.");
-    //
-    //     // // Refresh Token 쿠키 무효화
-    //     // ResponseCookie invalidRefreshTokenCookie = ResponseCookie.from("refreshToken", "")
-    //     //     .httpOnly(true)
-    //     //     .secure(true)
-    //     //     .path("/")
-    //     //     .maxAge(0) // 쿠키 만료
-    //     //     .sameSite("Strict")
-    //     //     .build();
-    //     //
-    //     // return ResponseEntity.ok()
-    //     //     .header(HttpHeaders.SET_COOKIE, invalidRefreshTokenCookie.toString()) // 쿠키 삭제
-    //     //     .body("로그아웃이 완료되었습니다.");
-    //     //
-    // }
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
     fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<String> {
@@ -174,14 +151,4 @@ class UserController (
         val refreshToken = request["refreshToken"]
         return ResponseEntity.ok(refreshToken?.let { userService.refreshTokens(it) })
     }
-
-    @Operation(summary = "현재 로그인한 사용자의 ID 반환")
-    @GetMapping("/user/me")
-    fun getCurrentUser(authentication: Authentication): ResponseEntity<Map<String, Long>> {
-        val email = authentication.name // Spring Security에서 인증된 사용자 이메일 가져오기
-        val userId = userService.getUserIdByEmail(email) // 이메일을 기반으로 사용자 ID 조회
-        return ResponseEntity.ok(mapOf("id" to userId))
-    }
-
 }
-
