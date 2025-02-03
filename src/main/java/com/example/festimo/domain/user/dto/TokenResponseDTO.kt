@@ -7,6 +7,8 @@ data class TokenResponseDTO (
 
     var nickname: String? = null,
 
-    var email: String? = null
+    var email: String? = null,
+
+    var id: Long? = null
 
 )

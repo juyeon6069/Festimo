@@ -409,7 +409,7 @@ const PostDetail = () => {
                         <div>
                             <p
                                 className="font-medium text-lg leading-tight cursor-pointer hover:text-[#4D4B88]"
-                                onClick={() => navigate(`/profile/${post.userId}`)} // TODO: ProfileLink
+                                onClick={() => navigate(`/profile/${post.mail}`)} // TODO: ProfileLink
                             >
                                 {post.nickname}
                             </p>
