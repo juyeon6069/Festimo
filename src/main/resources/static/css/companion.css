@@ -184,8 +184,29 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    max-height: 70vh; /* 뷰포트 높이의 70%로 제한 */
+    overflow-y: auto; /* 세로 스크롤 추가 */
+    padding-right: 16px; /* 스크롤바 공간 확보 */
 }
 
+/* 스크롤바 스타일링 */
+.application-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.application-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.application-list::-webkit-scrollbar-thumb {
+    background: #D1D5DB; /* 연한 회색으로 변경 */
+    border-radius: 4px;
+}
+
+.application-list::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF; /* 호버 시 조금 더 진한 회색 */
+}
 .application-row {
     border: 1px solid #e5e7eb;
     border-radius: 12px;
