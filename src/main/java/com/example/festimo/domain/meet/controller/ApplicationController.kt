@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 
 
-
 @RestController
 @RequestMapping("/api/meet")
 @Tag(name = "동행 API", description = "동행 관련 API")
@@ -36,6 +35,7 @@ class ApplicationController(
     ): ResponseEntity<ApplicationResponse> {
         val email = getEmailFromHeader(authorizationHeader)
         val response = applicationService.createApplication(email, request.companionId)
+            ?: throw IllegalStateException("Failed to create application")
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
@@ -46,8 +46,8 @@ class ApplicationController(
         @PathVariable companionId: Long
     ): ResponseEntity<List<LeaderApplicationResponse>> {
         val email = getEmailFromHeader(authorizationHeader)
-        val responses = applicationService.getAllApplications(companionId, email)
-        return ResponseEntity.status(HttpStatus.OK).body(responses)
+        val responses = applicationService.getAllApplications(companionId, email).orEmpty()
+        return ResponseEntity.ok(responses)
     }
 
     @PostMapping("/{applicationId}/accept")
@@ -72,25 +72,18 @@ class ApplicationController(
         return ResponseEntity.ok().build()
     }
 
-    /**
-     * 신청자 리뷰 확인
-     *
-     * @param applicationId 확인하고 싶은 신청자의 신청 ID
-     * @param page
-     */
     @GetMapping("/{applicationId}/reviews")
     fun getApplicantReview(
         @PathVariable applicationId: Long,
         page: Int
     ): ResponseEntity<Page<ApplicantReviewResponse>> {
         val pageable: Pageable = PageRequest.of(page, 5, Sort.by("createdAt").descending())
-        val reviews: Page<ApplicantReviewResponse> = applicationService.getApplicantReviews(applicationId, pageable)
-
-        if (reviews.isEmpty) {
-            return ResponseEntity.noContent().build()  // 리뷰가 없을 경우
+        val reviews = applicationService.getApplicantReviews(applicationId, pageable) ?: Page.empty()
+        return if (reviews.isEmpty) {
+            ResponseEntity.noContent().build()
+        } else {
+            ResponseEntity.ok(reviews)
         }
-
-        return ResponseEntity.ok(reviews)
     }
 
     private fun getEmailFromHeader(authorizationHeader: String): String {

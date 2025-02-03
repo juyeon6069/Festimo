@@ -183,7 +183,7 @@ class PostServiceImpl(
         post.imagePath?.let { fileService.deleteFile(it) }
 
         if (post.category == PostCategory.COMPANION) {
-            companionRepository.findByPost(post).orElse(null)?.let { companion ->
+            companionRepository.findByPost(post)?.let { companion ->
                 companion.companionId?.let { id ->
                     companionMemberRepository.deleteByCompanion_CompanionId(id)
                     companionRepository.delete(companion)
