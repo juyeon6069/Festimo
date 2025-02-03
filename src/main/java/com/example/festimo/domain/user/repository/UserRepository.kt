@@ -42,4 +42,9 @@ interface UserRepository : JpaRepository<User, Long> {
     FROM User u 
     WHERE u.id IN :userIds""")
     fun findApplicateInfoByUserIds(@Param("userIds") userIds: List<Long>): List<ApplicateUsersProjection>
+
+    @Query("SELECT u FROM User u WHERE LOWER(u.nickname) = LOWER(:nickname)")
+    fun findByNicknameIgnoreCase(@Param("nickname") nickname: String): User?
+
+
 }
