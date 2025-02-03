@@ -267,6 +267,24 @@ const PostDetail = () => {
         }
     };
 
+    const handleUserClick = (nickname) => {
+        // 닉네임을 통해 사용자 정보를 가져오는 API 호출
+        fetch(`/api/user/byNickname/${nickname}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('해당 사용자를 찾을 수 없습니다.');
+                }
+                return response.json();
+            })
+            .then(user => {
+                navigate(`/profile/${user.email}`);
+            })
+            .catch(err => {
+                console.error("Error fetching user by nickname:", err);
+                alert("해당 사용자의 정보를 불러오지 못했습니다.");
+            });
+    };
+
     const handleCommentSubmit = async () => {
         if (isSubmitting || !commentInput.trim()) {
             alert('댓글을 입력해주세요.');
@@ -567,7 +585,7 @@ const PostDetail = () => {
                                         <div>
                                             <p
                                                 className="font-medium cursor-pointer hover:text-[#4D4B88]"
-                                                onClick={() => navigate(`/profile/${comment.userId}`)} // TODO: ProfileLink
+                                                onClick={() => handleUserClick(comment.nickname)} // TODO: ProfileLink
                                             >
                                                 {comment.nickname}
                                             </p>

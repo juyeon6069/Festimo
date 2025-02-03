@@ -1,15 +1,19 @@
 package com.example.festimo.domain.user.controller
 
 import com.example.festimo.domain.user.dto.*
+import com.example.festimo.domain.user.repository.UserRepository
 import com.example.festimo.domain.user.service.UserService
+import com.example.festimo.exception.CustomException
+import com.example.festimo.exception.ErrorCode
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import lombok.RequiredArgsConstructor
-import org.springframework.beans.factory.annotation.Autowired
+import lombok.extern.log4j.Log4j
+import lombok.extern.slf4j.Slf4j
+import org.modelmapper.ModelMapper
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
@@ -22,8 +26,10 @@ import java.time.Duration
 @RestController
 @RequestMapping("/api")
 //@RequiredArgsConstructor
-class UserController (
-    private val userService: UserService
+class UserController(
+    private val userService: UserService,
+    private val userRepository: UserRepository,
+    private val modelMapper: ModelMapper
 ){
 
     @Operation(summary = "회원가입")
@@ -160,4 +166,16 @@ class UserController (
         val userId = userService.getUserIdByEmail(email) // 이메일을 기반으로 사용자 ID 조회
         return ResponseEntity.ok(mapOf("id" to userId))
     }
+
+    // 닉네임 기준 사용자 조회
+    @Operation(summary = "회원 정보 조회 (닉네임 기준)")
+    @GetMapping("/user/byNickname/{nickname}")
+    fun getUserByNickname(@PathVariable nickname: String): ResponseEntity<UserResponseDTO> {
+        val user = userRepository.findByNicknameIgnoreCase(nickname.trim())
+            ?: throw CustomException(ErrorCode.USER_NOT_FOUND)
+        val response = modelMapper.map(user, UserResponseDTO::class.java)
+        response.gender = user.gender?.name
+        return ResponseEntity.ok(response)
+    }
+
 }
