@@ -39,7 +39,8 @@ class PostServiceImpl(
     private val commentRepository: CommentRepository,
     private val companionService: CompanionService,
     private val companionRepository: CompanionRepository,
-    private val companionMemberRepository: CompanionMemberRepository
+    private val companionMemberRepository: CompanionMemberRepository,
+    private val fileService: FileService
 ) : PostService {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -47,13 +48,25 @@ class PostServiceImpl(
     override fun createPost(request: PostRequest, authentication: Authentication) {
         val user = validateAuthenticationAndGetUser(authentication)
 
+        val imagePath = request.image?.let {
+            fileService.saveFile(it)
+        }
+
+        // String을 카테고리 이넘으로 변환
+        val category = try {
+            PostCategory.valueOf(request.category)
+        } catch (e: IllegalArgumentException) {
+            throw IllegalArgumentException("존재하지 않는 카테고리입니다: ${request.category}")
+        }
+
         val post = Post(
             title = request.title,
             nickname = user.nickname,
             mail = user.email,
             password = request.password,
             content = request.content,
-            category = request.category,
+            imagePath = imagePath,
+            category = category,
             tags = request.tags?.toMutableSet() ?: mutableSetOf(),
             user = user
         )
@@ -120,14 +133,29 @@ class PostServiceImpl(
             throw InvalidPasswordException()
         }
 
-        if (request.title == null && request.content == null && request.category == null) {
+        if (request.title == null && request.content == null && request.category == null
+            && request.image == null && !request.removeImage) {
             throw IllegalArgumentException("수정할 필드가 없습니다.")
+        }
+
+        // 이미지 처리
+        when {
+            request.removeImage -> {
+                post.imagePath?.let { fileService.deleteFile(it) }
+                post.imagePath = null
+            }
+            request.image != null -> {
+                post.imagePath?.let { fileService.deleteFile(it) }
+                post.imagePath = fileService.saveFile(request.image)
+            }
         }
 
         post.apply {
             title = request.title ?: title
             content = request.content ?: content
-            category = request.category ?: category
+            request.category?.let {
+                category = PostCategory.valueOf(it)
+            }
         }
 
         postRepository.saveAndFlush(post)
@@ -150,6 +178,9 @@ class PostServiceImpl(
             }
             user.role != User.Role.ADMIN -> throw PostDeleteAuthorizationException()
         }
+
+        // 이미지 삭제
+        post.imagePath?.let { fileService.deleteFile(it) }
 
         if (post.category == PostCategory.COMPANION) {
             companionRepository.findByPost(post).orElse(null)?.let { companion ->

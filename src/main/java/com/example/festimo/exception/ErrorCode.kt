@@ -76,5 +76,12 @@ enum class ErrorCode(
     /*
      * 500 INTERNAL_SERVER_ERROR
      */
-    IMAGE_UPLOAD_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다.")
+    IMAGE_UPLOAD_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다."),
+
+    // 팔로우 관련 에러 코드 추가
+    SELF_FOLLOW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다."),
+    ALREADY_FOLLOWED(HttpStatus.BAD_REQUEST, "이미 팔로우한 사용자입니다."),
+    FOLLOWER_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로워를 찾을 수 없습니다."),
+    FOLLOWEE_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로우 대상 사용자를 찾을 수 없습니다."),
+    FOLLOW_RELATION_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로우 관계가 존재하지 않습니다.")
 }

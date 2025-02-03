@@ -31,6 +31,9 @@ class Post(
     @Column(nullable = false, columnDefinition = "TEXT")
     var content: String,
 
+    @Column
+    var imagePath: String? = null,
+
     @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
     var views: Int = 0,
 

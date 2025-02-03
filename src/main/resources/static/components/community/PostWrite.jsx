@@ -14,6 +14,9 @@ const PostWrite = () => {
         content: "",
         category: "COMPANION",
         tags: "",
+        image: null,
+        imagePath: "",
+        removeImage: false
     });
 
     useEffect(() => {
@@ -36,6 +39,9 @@ const PostWrite = () => {
                         content: data.content || "",
                         category: data.category || "COMPANION",
                         tags: (data.tags || []).join(","),
+                        imagePath: data.imagePath || "",
+                        image: null,
+                        removeImage: false
                     });
                 })
                 .catch((error) => console.error("Error:", error));
@@ -55,6 +61,24 @@ const PostWrite = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        setFormData(prev => ({
+            ...prev,
+            image: file,
+            removeImage: false
+        }));
+    };
+
+    const handleImageRemove = () => {
+        setFormData(prev => ({
+            ...prev,
+            image: null,
+            imagePath: "",
+            removeImage: true
+        }));
     };
 
     const handleSubmit = (e) => {
@@ -83,15 +107,32 @@ const PostWrite = () => {
                 tags: tagsArray
             };
 
+        const formDataToSend = new FormData();
+        Object.keys(processedFormData).forEach(key => {
+            if (key === 'tags') {
+                processedFormData[key].forEach((tag, index) => {
+                    formDataToSend.append(`tags[${index}]`, tag);
+                });
+            } else {
+                formDataToSend.append(key, processedFormData[key]);
+            }
+        });
+
+        if (formData.image) {
+            formDataToSend.append('image', formData.image);
+        }
+        if (formData.removeImage) {
+            formDataToSend.append('removeImage', true);
+        }
+
         const url = isEditMode ? `/api/companions/${postId}` : "/api/companions";
 
         fetch(url, {
             method: isEditMode ? "PUT" : "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(processedFormData),
+            body: formDataToSend,
         })
             .then((response) => {
                 if (!response.ok) {
@@ -193,6 +234,31 @@ const PostWrite = () => {
                         onChange={handleChange}
                         className="w-full p-2 border rounded-lg"
                         placeholder="태그를 쉼표로 구분해 입력하세요"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block font-semibold mb-2">이미지</label>
+                    {(formData.imagePath || formData.image) && (
+                        <div className="mb-2">
+                            {formData.image ? (
+                                <span>{formData.image.name}</span>
+                            ) : (
+                                <span>{formData.imagePath}</span>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleImageRemove}
+                                className="ml-2 text-red-500"
+                            >
+                                삭제
+                            </button>
+                        </div>
+                    )}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="w-full p-2 border rounded-lg"
                     />
                 </div>
                 <div className="text-right">
