@@ -157,27 +157,27 @@ function toggleMemberView(view) {
     document.getElementById('ongoing-members').classList.toggle('hidden', view !== 'ongoing');
     document.getElementById('completed-members').classList.toggle('hidden', view !== 'completed');
 }
-
 function renderCompanionCard(companion, currentUserId) {
     const isLeader = companion.leaderId === currentUserId;
     const isCompleted = companion.status === 'COMPLETED';
+
+    // title 이스케이프 처리를 좀 더 강화
+    const escapedTitle = companion.title
+        .replace(/'/g, '&#39;')
+        .replace(/"/g, '&quot;')
+        .replace(/`/g, '&#96;');
 
     return `
         <div class="companion-card ${isCompleted ? 'completed' : ''}">
             <h2 class="companion-title">${companion.title}</h2>
             <div class="card-actions">
                 ${isLeader
-        ? `<button class="btn edit-title-btn" onclick="openEditTitleModal(${companion.companionId}, '${companion.title}')">이름 수정</button>`
-        : ''
-    }
-                ${isLeader
-        ? (isCompleted
+        ? `<button class="btn edit-title-btn" onclick="openEditTitleModal(${companion.companionId}, '${escapedTitle}')">이름 수정</button>
+                       ${isCompleted
             ? `<button class="btn restore-btn" onclick="restoreCompanion(${companion.companionId})">진행하기</button>`
-            : `<button class="btn complete-btn" onclick="completeCompanion(${companion.companionId})">종료하기</button>`)
-        : ''
-    }
-                ${isLeader
-        ? `<button class="btn" onclick="loadApplications(${companion.companionId})">신청 리스트 확인</button>`
+            : `<button class="btn complete-btn" onclick="completeCompanion(${companion.companionId})">종료하기</button>`
+        }
+                       <button class="btn" onclick="loadApplications(${companion.companionId})">신청 리스트 확인</button>`
         : ''
     }
             </div>

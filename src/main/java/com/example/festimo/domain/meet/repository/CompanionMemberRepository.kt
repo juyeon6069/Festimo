@@ -16,9 +16,6 @@ interface CompanionMemberRepository : JpaRepository<CompanionMember, CompanionMe
     @Query("SELECT DISTINCT cm FROM CompanionMember cm LEFT JOIN FETCH cm.companion c LEFT JOIN FETCH cm.user u LEFT JOIN FETCH c.post WHERE cm.id.userId = :userId")
     fun findByUserId(@Param("userId") userId: Long): List<CompanionMember>
 
-    @Query("SELECT DISTINCT cm FROM CompanionMember cm LEFT JOIN FETCH cm.companion c LEFT JOIN FETCH cm.user u LEFT JOIN FETCH c.post WHERE cm.id.companionId = :companionId")
-    fun findAllByCompanionId(@Param("companionId") companionId: Long): List<CompanionMember>
-
     fun deleteByCompanion_CompanionId(companionId: Long)
 
     @Query("""
@@ -30,15 +27,5 @@ interface CompanionMemberRepository : JpaRepository<CompanionMember, CompanionMe
     WHERE cm.companion.companionId = :companionId
 """)
     fun findMembersByCompanionId(companionId: Long): List<MemberResponse>
-
-
-
-    @Query("""
-    SELECT cm
-    FROM CompanionMember cm
-    JOIN FETCH cm.user u
-    WHERE cm.companion.companionId = :companionId
-""")
-    fun findAllWithUserByCompanionId(companionId: Long): List<CompanionMember>
 
 }

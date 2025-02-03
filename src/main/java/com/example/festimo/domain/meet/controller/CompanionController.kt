@@ -29,10 +29,8 @@ class CompanionController(
 
     private fun getUserFromEmail(email: String): User {
         return userRepository.findByEmail(email)
-            ?: throw  CustomException(USER_NOT_FOUND)
-
+            ?: throw CustomException(USER_NOT_FOUND)
     }
-
 
     @PostMapping("/companions")
     @Operation(summary = "동행 생성")
@@ -42,6 +40,7 @@ class CompanionController(
     ): ResponseEntity<Void> {
         val email = getEmailFromHeader(authorizationHeader)
         companionService.createCompanion(request.postId, email)
+            ?: throw IllegalStateException("Failed to create companion")
         return ResponseEntity.status(HttpStatus.CREATED).build()
     }
 
@@ -66,8 +65,8 @@ class CompanionController(
 
         val userId = user.id
 
-        val asLeader = companionService.getCompanionAsLeader(userId)
-        val asMember = companionService.getCompanionAsMember(userId)
+        val asLeader = companionService.getCompanionAsLeader(userId).orEmpty()
+        val asMember = companionService.getCompanionAsMember(userId).orEmpty()
 
         return ResponseEntity.ok(
             mapOf(
@@ -108,8 +107,4 @@ class CompanionController(
         companionService.restoreCompanion(companionId, email)
         return ResponseEntity.noContent().build()
     }
-
-
-
-
 }

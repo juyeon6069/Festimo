@@ -1,5 +1,6 @@
 package com.example.festimo.domain.meet.service
 
+
 import com.example.festimo.domain.meet.dto.ApplicantReviewResponse
 import com.example.festimo.domain.meet.dto.ApplicationResponse
 import com.example.festimo.domain.meet.dto.LeaderApplicationResponse
@@ -23,8 +24,6 @@ import java.time.LocalDateTime
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
-
-
 @Service
 class ApplicationService(
     private val applicationRepository: ApplicationRepository,
@@ -35,12 +34,11 @@ class ApplicationService(
 ) {
 
     private fun getUserFromEmail(email: String): User =
-        userRepository.findByEmail(email)
-            ?: throw CustomException(USER_NOT_FOUND)
+        userRepository.findByEmail(email) ?: throw CustomException(USER_NOT_FOUND)
 
     private fun validateLeaderAccess(companionId: Long, userId: Long) {
         val leaderId = companionRepository.findLeaderIdByCompanyId(companionId)
-            .orElseThrow { CustomException(COMPANION_NOT_FOUND) }
+            ?: throw CustomException(COMPANION_NOT_FOUND)
 
         if (userId != leaderId) {
             throw CustomException(ACCESS_DENIED)
@@ -49,7 +47,7 @@ class ApplicationService(
 
     private fun validateAndGetApplication(applicationId: Long): Applications {
         val application = applicationRepository.findById(applicationId)
-            .orElseThrow { CustomException(APPLICATION_NOT_FOUND) }
+            .orElse(null) ?: throw CustomException(APPLICATION_NOT_FOUND)
 
         if (application.status != Applications.Status.PENDING) {
             throw CustomException(INVALID_APPLICATION_STATUS)
@@ -58,13 +56,14 @@ class ApplicationService(
         return application
     }
 
+
     @Transactional
     fun createApplication(email: String, postId: Long): ApplicationResponse {
         val user = getUserFromEmail(email)
         val userId = user.id
 
         val companionId = companionRepository.findCompanionIdByPostId(postId)
-            .orElseThrow { CustomException(POST_NOT_FOUND) }
+            ?: throw CustomException(POST_NOT_FOUND)
 
         if (!companionRepository.existsById(companionId)) {
             throw CustomException(COMPANION_NOT_FOUND)
@@ -92,15 +91,17 @@ class ApplicationService(
         val applications = applicationRepository.findByCompanionIdAndStatus(
             companionId,
             Applications.Status.PENDING
-        )
+        ).orEmpty()  // null 방지
 
         val userIds = applications.map { it.userId }
+
+        if (userIds.isEmpty()) return emptyList()  // userIds가 없으면 빈 리스트 반환
 
         val users = userRepository.findApplicateInfoByUserIds(userIds)
 
         return users.map { projection ->
             val application = applications.find { it.userId == projection.getUserId() }
-                ?: throw IllegalStateException("Application not found for userId: ${projection.getUserId()}")
+                ?: throw CustomException(APPLICATION_NOT_FOUND) // 예외 처리 명확화
 
             LeaderApplicationResponse(
                 applicationId = application.applicationId,
@@ -111,7 +112,6 @@ class ApplicationService(
             )
         }
     }
-
 
     @Transactional
     fun acceptApplication(applicationId: Long, email: String) {
@@ -131,27 +131,18 @@ class ApplicationService(
         companionMemberRepository.save(companionMember)
     }
 
+
     private fun createCompanionMember(application: Applications, user: User): CompanionMember {
-        val userId = user.id
-
-        val companionMemberId = CompanionMemberId(
-            application.companionId,
-            userId
-        )
-
-        // Companion 조회
         val companion = companionRepository.findById(application.companionId)
             .orElseThrow { CustomException(COMPANION_MEMBER_NOT_FOUND) }
 
-        // CompanionMember 객체 생성 및 반환
         return CompanionMember(
-            id = companionMemberId,
+            id = CompanionMemberId(application.companionId, user.id),
             companion = companion,
             user = user,
             joinedDate = LocalDateTime.now()
         )
     }
-
 
     @Transactional
     fun rejectApplication(applicationId: Long, email: String) {
@@ -171,17 +162,16 @@ class ApplicationService(
      * @param applicationId 조회하고 싶은 applicationId
      */
     fun getApplicantReviews(applicationId: Long, pageable: Pageable): Page<ApplicantReviewResponse> {
-        // applicationId로 userId 찾기
         val application = applicationRepository.findById(applicationId)
-            .orElseThrow { CustomException(APPLICATION_NOT_FOUND) }
+            .orElseThrow { CustomException(APPLICATION_NOT_FOUND) }  // Optional 처리
 
-        val userId = application.userId
+        val userId = application.userId  // 직접 참조 가능
 
-        // userId(revieweeId) 기준으로 리뷰 조회 (페이징 처리)
         val reviews = reviewRepository.findByRevieweeId(userId, pageable)
 
         return reviews.map { review ->
             ApplicantReviewResponse(review.rating, review.content)
         }
     }
+
 }

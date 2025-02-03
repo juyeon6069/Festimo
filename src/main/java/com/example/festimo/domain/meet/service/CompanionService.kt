@@ -17,7 +17,6 @@ import com.example.festimo.exception.ErrorCode.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-
 @Service
 class CompanionService(
     private val companionMemberRepository: CompanionMemberRepository,
@@ -26,12 +25,11 @@ class CompanionService(
     private val userRepository: UserRepository
 ) {
     private fun getUserFromEmail(email: String): User =
-        userRepository.findByEmail(email)
-            ?: throw CustomException(USER_NOT_FOUND)
+        userRepository.findByEmail(email) ?: throw CustomException(USER_NOT_FOUND)
 
     private fun validateLeaderAccess(companionId: Long, userId: Long) {
         val leaderId = companionRepository.findLeaderIdByCompanyId(companionId)
-            .orElseThrow { CustomException(COMPANION_NOT_FOUND) }
+            ?: throw CustomException(COMPANION_NOT_FOUND)
 
         if (userId != leaderId) {
             throw CustomException(ACCESS_DENIED)
@@ -47,8 +45,9 @@ class CompanionService(
             .orElseThrow { CustomException(POST_NOT_FOUND) }
 
         // 중복 생성 방지
-        companionRepository.findByPost(post)
-            .ifPresent { throw CustomException(COMPANION_ALREADY_EXISTS) }
+        if (companionRepository.findByPost(post) != null) {
+            throw CustomException(COMPANION_ALREADY_EXISTS)
+        }
 
         // companion 추가
         val now = LocalDateTime.now()
@@ -72,7 +71,6 @@ class CompanionService(
         val companion = companionRepository.findById(companionId)
             .orElseThrow { CustomException(COMPANION_MEMBER_NOT_FOUND) }
 
-        // id 초기화를 명시적으로
         val companionMemberId = CompanionMemberId(companionId, userId)
         val companionMember = CompanionMember(
             id = companionMemberId,
@@ -82,7 +80,6 @@ class CompanionService(
         )
         companionMemberRepository.save(companionMember)
     }
-
 
     @Transactional
     fun deleteCompanion(companionId: Long, email: String) {
@@ -100,22 +97,17 @@ class CompanionService(
     @Transactional(readOnly = true)
     fun getCompanionAsLeader(leaderId: Long): List<CompanionResponse> =
         companionRepository.findByLeaderId(leaderId)
-            ?.map(::mapToCompanionResponse)
-            ?: emptyList()
+            .map(::mapToCompanionResponse)
+            .orEmpty()
 
     fun getCompanionAsMember(userId: Long): List<CompanionResponse> {
         val members = companionMemberRepository.findByUserId(userId)
-
 
         return members
             .filter {
                 val hasCompanion = it.companion != null
                 val hasUser = it.user != null
                 hasCompanion && hasUser
-            }
-            .onEach {
-                val companionId = it.companion?.companionId
-                val userId = it.user?.id
             }
             .filter {
                 val companionLeaderId = it.companion?.leaderId
@@ -125,14 +117,8 @@ class CompanionService(
     }
 
     private fun mapToCompanionResponse(companion: Companion): CompanionResponse {
-
-        // 리더 정보 로드
         val leader = companionRepository.findLeaderById(companion.leaderId!!)
-
-
-        // 멤버 정보 로드
         val members = companionMemberRepository.findMembersByCompanionId(companion.companionId)
-
 
         return CompanionResponse(
             title = companion.title,
@@ -184,12 +170,4 @@ class CompanionService(
 
         companion.changeStatus(CompanionStatus.ONGOING)
     }
-
-
-
-
-
-
-
-
 }

@@ -1,19 +1,13 @@
-package com.example.festimo.domain.meet.repository;
+package com.example.festimo.domain.meet.repository
 
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import com.example.festimo.domain.meet.entity.Applications;
+import com.example.festimo.domain.meet.entity.Applications
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 @Repository
-public interface ApplicationRepository extends JpaRepository<Applications, Long> {
-    boolean existsByUserIdAndCompanionId(Long userId, Long companionId);
+interface ApplicationRepository : JpaRepository<Applications, Long> {
+    fun existsByUserIdAndCompanionId(userId: Long, companionId: Long): Boolean
 
-    //특정 활동의 신청 리스트 조회
-    List<Applications> findByCompanionIdAndStatus(Long companionId, Applications.Status status);
-
-
+    fun findByCompanionIdAndStatus(companionId: Long, status: Applications.Status): List<Applications>?
 
 }
