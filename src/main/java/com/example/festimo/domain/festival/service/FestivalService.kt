@@ -264,8 +264,7 @@ open class FestivalService (
         }
 
         val criteria = Criteria("title").contains(keyword).boost(2.0f)
-            .or(Criteria("description").matches(keyword).boost(1.0f))
-            .or(Criteria("location").matches(keyword).boost(1.0f))
+            .or(Criteria("address").contains(keyword).boost(1.0f))
 
         val query: Query = CriteriaQuery(criteria).setPageable(pageable)
         val searchHits = elasticsearchOperations.search(query, FestivalDocument::class.java)
