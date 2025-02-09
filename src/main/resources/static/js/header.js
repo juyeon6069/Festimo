@@ -11,29 +11,30 @@ fetch('../html/header.html')
         if (accessToken) {
             loginLogoutLink.textContent = 'Logout';
             loginLogoutLink.href = 'http://localhost:8080/api/logout';
-            loginLogoutLink.addEventListener('click', async function (event) {
+            loginLogoutLink.addEventListener('click',async function(event) {
                 event.preventDefault();
 
-                try {
-                    const response = await fetch('http://localhost:8080/api/logout', {
-                        method: 'POST',
-                        credentials: 'include',
+                try{
+                    const response = await fetch('http://localhost:8080/api/logout',{
+                        method:'POST',
+                        credentials:'include',
                         headers: {
                             'Authorization': `Bearer ${accessToken}`, // Authorization 헤더 추가
                             'Content-Type': 'application/json'
                         }
                     })
-                        .then(response => {
-                            if (response.ok) {
+                        .then(response =>{
+                            if(response.ok){
                                 alert('로그아웃 되었습니다.');
                                 localStorage.removeItem('accessToken');
-                                window.location.href = '/'
-                            } else {
+                                window.location.href='/'
+                            }
+                            else{
                                 alert('로그아웃에 실패했습니다. 다시 시도해 주세요.');
                             }
                         })
-                } catch (error) {
-                    console.error('로그아웃 오류 : ', error);
+                }catch (error){
+                    console.error('로그아웃 오류 : ',error);
                     alert('로그아웃에 실패했습니다. 다시 시도해 주세요.');
                 }
             });

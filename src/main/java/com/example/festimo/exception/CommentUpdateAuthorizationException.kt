@@ -1,0 +1,3 @@
+package com.example.festimo.exception
+
+class CommentUpdateAuthorizationException : CustomException(ErrorCode.COMMENT_UPDATE_AUTHORIZATION_EXCEPTION)

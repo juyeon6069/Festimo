@@ -1,13 +1,11 @@
 package com.example.festimo.global.config;
 
-
 import com.example.festimo.domain.oauth.service.CustomOAuth2UserService;
 import com.example.festimo.global.utils.jwt.CustomOAuth2FailureHandler;
 import com.example.festimo.global.utils.jwt.JwtAuthenticationFilter;
 import com.example.festimo.global.utils.jwt.JwtTokenProvider;
 import com.example.festimo.global.utils.jwt.OAuth2LoginSuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,18 +15,21 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private final CustomOAuth2FailureHandler customOAuth2FailureHandler;
+
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomOAuth2UserService customOAuth2UserService, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler, CustomOAuth2FailureHandler customOAuth2FailureHandler) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+        this.customOAuth2FailureHandler = customOAuth2FailureHandler;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -38,7 +39,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -51,7 +54,8 @@ public class SecurityConfig {
                                 "/assets/**",
                                 "/css/**",
                                 "/js/**",
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                "/uploads/**"
                         ).permitAll()
 
                         // 프론트엔드 라우팅 경로
@@ -101,11 +105,11 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers("/api/reviews/**").permitAll()
+                        .requestMatchers("/api/follow/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/oauth2/token").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 권한 기반 접근 제어 관리자만 사용 가능
                         .anyRequest().authenticated()    // 나머지는 로그인한 사용자만
-
                 );
 
         // Add JWT Authentication Filter
@@ -121,7 +125,6 @@ public class SecurityConfig {
                 .successHandler(oAuth2LoginSuccessHandler)
                 .failureHandler(customOAuth2FailureHandler));
 
-
         //에러처리
         http.exceptionHandling(exception -> exception
             .authenticationEntryPoint((request, response, authException) -> {
@@ -131,8 +134,6 @@ public class SecurityConfig {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
             }) // 권한 부족 시 403 반환
         );
-
-
 
         return http.build();
     }

@@ -93,7 +93,36 @@ async function apiRequest(url, options = {}) {
     }
 }
 
+/**
+ * 현재 로그인한 사용자 ID 가져오기
+ * @returns {Promise<number|null>} - 현재 로그인한 사용자 ID 또는 null
+ */
+async function getCurrentUserId() {
+    try {
+        const response = await apiRequest('http://localhost:8080/api/user/me'); // 백엔드 API 호출
+        console.log("Current User ID:", response.id);
+        return response.id; // ID 반환
+    } catch (error) {
+        console.error("사용자 정보를 가져오는 데 실패했습니다:", error);
+        return null;
+    }
+}
 
+/**
+ * 현재 로그인 상태 확인
+ * @returns {boolean} - 로그인 상태 여부
+ */
+function isLoggedIn() {
+    if (!accessToken) {
+        console.log("isLoggedIn: No token found. Returning false.");
+        return false;  // ✅ 명확하게 `false` 반환
+    }
+
+    const expired = isTokenExpired(accessToken);
+    console.log(`isLoggedIn: Token valid? ${!expired}`);
+    return !expired; // ✅ 만료 여부 체크 후 `true` 또는 `false` 반환
+}
 
 // 모듈 내보내기
-export { apiRequest, refreshAccessToken, isTokenExpired };
+export { apiRequest, refreshAccessToken, isTokenExpired, getCurrentUserId, isLoggedIn };
+
